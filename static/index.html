@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FIQA Conversational Search</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon.svg" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260501a" />
+  </head>
+  <body>
+    <header class="hero">
+      <h1>FIQA Conversational Search</h1>
+      <p>News-feed style document search with chat powered by Manticore.</p>
+    </header>
+
+    <main class="container layout">
+      <section class="shop-panel">
+        <section class="controls">
+          <input id="query" type="text" placeholder="Search news feed..." />
+
+          <select id="sort">
+            <option value="relevance">Sort: Relevance</option>
+            <option value="title">Title: A-Z</option>
+          </select>
+
+          <button id="search-btn">Search</button>
+        </section>
+        <div id="error-banner" class="error-banner hidden" role="alert" hidden></div>
+
+        <section>
+          <p id="meta"></p>
+          <div id="grid" class="grid"></div>
+          <div class="pagination">
+            <button id="prev-page-btn" type="button">Previous</button>
+            <div id="page-buttons" class="page-buttons"></div>
+            <p id="page-meta" class="page-meta"></p>
+            <button id="next-page-btn" type="button">Next</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <button id="assistant-open-btn" class="assistant-fab" type="button">Assistant</button>
+
+    <aside id="assistant-popup" class="chat-panel popup hidden" hidden>
+      <div class="chat-header">
+        <div class="chat-header-row">
+          <h2>Search Assistant</h2>
+          <button id="assistant-close-btn" class="assistant-close-btn" type="button" aria-label="Close">×</button>
+        </div>
+        <p>Control filters with natural language.</p>
+      </div>
+      <div id="chat-log" class="chat-log"></div>
+      <div class="chat-actions">
+        <input id="chat-input" type="text" placeholder="Try: what's the difference between Market Cap and NAV?" />
+        <button id="chat-send-btn">Apply</button>
+      </div>
+    </aside>
+
+    <div id="product-modal" class="product-modal hidden" hidden>
+      <button id="product-modal-backdrop" class="product-modal-backdrop" type="button" aria-label="Close comment details"></button>
+      <section class="product-modal-card">
+        <div class="product-modal-head">
+          <h2 id="product-modal-title">Comment</h2>
+          <button id="product-modal-close-btn" class="product-modal-close-btn" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="product-page">
+          <div class="product-page-main">
+            <p id="product-modal-brand" class="product-page-brand"></p>
+            <p id="product-modal-rating" class="product-page-rating"></p>
+            <p id="product-modal-price" class="product-page-price"></p>
+            <p id="product-modal-description" class="product-page-description"></p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <template id="card-template">
+      <article class="card feed-card">
+        <div class="card-body">
+          <h3 class="title"></h3>
+          <p class="rating"></p>
+          <p class="bought"></p>
+          <p class="delivery"></p>
+          <p class="description"></p>
+          <div class="tags">
+            <span class="tag brand"></span>
+            <span class="tag color"></span>
+          </div>
+        </div>
+
+        <details class="dataset-details">
+          <summary>Document fields</summary>
+          <div class="dataset-grid">
+            <p class="id"></p>
+            <p class="product-locale"></p>
+            <p class="example-id"></p>
+            <p class="query-id"></p>
+            <p class="query"></p>
+            <p class="esci-label"></p>
+            <p class="small-version"></p>
+            <p class="large-version"></p>
+            <p class="split"></p>
+            <p class="source"></p>
+          </div>
+        </details>
+      </article>
+    </template>
+
+    <template id="chat-message-template">
+      <div class="chat-message">
+        <p class="chat-role"></p>
+        <div class="chat-text"></div>
+      </div>
+    </template>
+
+    <script src="/static/app.js?v=20260501a"></script>
+  </body>
+</html>
