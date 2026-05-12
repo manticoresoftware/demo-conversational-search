@@ -1,21 +1,26 @@
-const queryEl = document.getElementById("query");
-const sortEl = document.getElementById("sort");
-const searchBtn = document.getElementById("search-btn");
+const homeScreenEl = document.getElementById("home-screen");
+const resultsScreenEl = document.getElementById("results-screen");
+const homeFormEl = document.getElementById("home-form");
+const homeQueryEl = document.getElementById("home-query");
+const homeSearchBtn = document.getElementById("home-search-btn");
+const homeAiBtn = document.getElementById("home-ai-btn");
+const resultsSearchFormEl = document.getElementById("results-search-form");
+const resultsQueryEl = document.getElementById("results-query");
+const resultsSearchBtn = document.getElementById("results-search-btn");
 const errorBannerEl = document.getElementById("error-banner");
 const gridEl = document.getElementById("grid");
 const metaEl = document.getElementById("meta");
+const aiOverviewEl = document.getElementById("ai-overview");
+const aiAnswerEl = document.getElementById("ai-answer");
+const aiHistoryEl = document.getElementById("ai-history");
+const followupFormEl = document.getElementById("followup-form");
+const followupInputEl = document.getElementById("followup-input");
+const followupSendBtn = document.getElementById("followup-send-btn");
 const pageMetaEl = document.getElementById("page-meta");
 const pageButtonsEl = document.getElementById("page-buttons");
 const prevPageBtn = document.getElementById("prev-page-btn");
 const nextPageBtn = document.getElementById("next-page-btn");
 const template = document.getElementById("card-template");
-const chatLogEl = document.getElementById("chat-log");
-const chatInputEl = document.getElementById("chat-input");
-const chatSendBtn = document.getElementById("chat-send-btn");
-const chatMessageTemplate = document.getElementById("chat-message-template");
-const assistantOpenBtn = document.getElementById("assistant-open-btn");
-const assistantPopupEl = document.getElementById("assistant-popup");
-const assistantCloseBtn = document.getElementById("assistant-close-btn");
 const productModalEl = document.getElementById("product-modal");
 const productModalBackdropBtn = document.getElementById("product-modal-backdrop");
 const productModalCloseBtn = document.getElementById("product-modal-close-btn");
@@ -25,10 +30,13 @@ const productModalBrandEl = document.getElementById("product-modal-brand");
 const productModalRatingEl = document.getElementById("product-modal-rating");
 const productModalDescriptionEl = document.getElementById("product-modal-description");
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 10;
 let currentOffset = 0;
 let currentTotal = 0;
 let chatConversationUuid = null;
+let currentSearchMode = "comments";
+let aiConversation = [];
+let currentQuery = "";
 
 function showError(message) {
   errorBannerEl.textContent = message;
@@ -40,6 +48,88 @@ function clearError() {
   errorBannerEl.textContent = "";
   errorBannerEl.classList.add("hidden");
   errorBannerEl.hidden = true;
+}
+
+function setResultsVisible(isVisible) {
+  homeScreenEl.classList.toggle("hidden", isVisible);
+  homeScreenEl.hidden = isVisible;
+  resultsScreenEl.classList.toggle("hidden", !isVisible);
+  resultsScreenEl.hidden = !isVisible;
+}
+
+function setAiVisible(isVisible) {
+  aiOverviewEl.classList.toggle("hidden", !isVisible);
+  aiOverviewEl.hidden = !isVisible;
+  followupFormEl.classList.toggle("hidden", !isVisible);
+  followupFormEl.hidden = !isVisible;
+}
+
+function setResultsSearchVisible(isVisible) {
+  resultsSearchFormEl.classList.toggle("hidden", !isVisible);
+  resultsSearchFormEl.hidden = !isVisible;
+}
+
+function renderAiConversation({ loadingQuestion = "" } = {}) {
+  aiHistoryEl.innerHTML = "";
+
+  for (const turn of aiConversation) {
+    const article = document.createElement("article");
+    article.className = "ai-turn";
+
+    const question = document.createElement("p");
+    question.className = "ai-question";
+    question.textContent = turn.question;
+    article.appendChild(question);
+
+    const answer = document.createElement("div");
+    answer.className = "ai-answer";
+    answer.innerHTML = markdownToHtml(turn.answer || "No AI overview was returned.");
+    article.appendChild(answer);
+
+    aiHistoryEl.appendChild(article);
+  }
+
+  if (loadingQuestion) {
+    const article = document.createElement("article");
+    article.className = "ai-turn loading";
+
+    const question = document.createElement("p");
+    question.className = "ai-question";
+    question.textContent = loadingQuestion;
+    article.appendChild(question);
+
+    const answer = document.createElement("div");
+    answer.className = "ai-answer";
+    answer.innerHTML = "<p>Generating an answer from FIQA sources...</p>";
+    article.appendChild(answer);
+
+    aiHistoryEl.appendChild(article);
+  }
+}
+
+function clearAiConversation() {
+  aiConversation = [];
+  aiHistoryEl.innerHTML = "";
+  aiAnswerEl.innerHTML = "";
+  aiAnswerEl.classList.add("hidden");
+  aiAnswerEl.hidden = true;
+}
+
+function setAiOverview(text, { loading = false, question = "" } = {}) {
+  aiOverviewEl.classList.toggle("loading", loading);
+  if (loading) {
+    renderAiConversation({ loadingQuestion: question });
+    return;
+  }
+
+  const cleanText = String(text || "").trim();
+  if (question) {
+    aiConversation.push({
+      question,
+      answer: cleanText || "No AI overview was returned.",
+    });
+  }
+  renderAiConversation();
 }
 
 async function readErrorMessage(response, fallback) {
@@ -58,17 +148,21 @@ async function readErrorMessage(response, fallback) {
   return `${fallback}: HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ""}`;
 }
 
-function setAssistantOpen(isOpen) {
-  assistantPopupEl.classList.toggle("hidden", !isOpen);
-  assistantPopupEl.hidden = !isOpen;
-  if (isOpen) {
-    chatInputEl.focus();
-  }
-}
-
 function setProductModalOpen(isOpen) {
   productModalEl.classList.toggle("hidden", !isOpen);
   productModalEl.hidden = !isOpen;
+}
+
+function setSearchBusy(isBusy) {
+  homeSearchBtn.disabled = isBusy;
+  homeAiBtn.disabled = isBusy;
+  resultsQueryEl.disabled = isBusy;
+  resultsSearchBtn.disabled = isBusy;
+  followupInputEl.disabled = isBusy;
+  followupSendBtn.disabled = isBusy;
+  homeSearchBtn.textContent = isBusy && currentSearchMode === "comments" ? "Searching..." : "Search";
+  homeAiBtn.textContent = isBusy && currentSearchMode === "assistant" ? "Asking..." : "Ask AI";
+  resultsSearchBtn.textContent = isBusy && currentSearchMode === "comments" ? "Searching..." : "Search";
 }
 
 function renderCommentModal(comment) {
@@ -85,7 +179,7 @@ function renderComments(items, total, offset, limit) {
   gridEl.innerHTML = "";
   currentTotal = total;
 
-  metaEl.textContent = total ? `${total} comments` : "No comments found";
+  metaEl.textContent = total ? `${total} source${total === 1 ? "" : "s"}` : "No sources found";
   renderPagination(total, offset, limit);
 
   if (!items.length) {
@@ -101,12 +195,12 @@ function renderComments(items, total, offset, limit) {
     const source = (comment.source || "").trim() || "Community";
 
     node.querySelector(".title").textContent = headline.slice(0, 160);
-    node.querySelector(".rating").textContent = `Source: ${source}`;
-    node.querySelector(".bought").textContent = `Comment ID: ${commentId}`;
+    node.querySelector(".rating").textContent = source;
+    node.querySelector(".bought").textContent = `Comment ID ${commentId}`;
     node.querySelector(".id").textContent = comment.knn_dist == null ? `ID: ${comment.id || "N/A"}` : `KNN distance: ${Number(comment.knn_dist).toFixed(4)}`;
     node.querySelector(".brand").textContent = `Source: ${source}`;
     node.querySelector(".color").textContent = `Comment: ${commentId}`;
-    node.querySelector(".delivery").textContent = comment.url ? `Link: ${comment.url}` : "Link: N/A";
+    node.querySelector(".delivery").textContent = comment.url || "";
     node.querySelector(".product-locale").textContent = `Comment ID: ${commentId}`;
     node.querySelector(".example-id").textContent = `Row ID: ${comment.id || "N/A"}`;
     node.querySelector(".query-id").textContent = `Source: ${source}`;
@@ -217,13 +311,24 @@ function scrollToResultsTop() {
   window.scrollTo({ top, behavior: "smooth" });
 }
 
-async function loadComments({ resetOffset = false } = {}) {
+async function loadComments({ resetOffset = false, preserveAi = false } = {}) {
+  if (!preserveAi) currentSearchMode = "comments";
   if (resetOffset) currentOffset = 0;
   clearError();
+  currentQuery = (preserveAi ? currentQuery : resultsQueryEl.value || homeQueryEl.value).trim();
+  homeQueryEl.value = currentQuery;
+  resultsQueryEl.value = currentQuery;
+  setResultsVisible(true);
+  if (!preserveAi) {
+    setAiVisible(false);
+    setResultsSearchVisible(true);
+    clearAiConversation();
+  }
+  setSearchBusy(true);
 
   const params = new URLSearchParams({
-    q: queryEl.value,
-    sort: sortEl.value,
+    q: currentQuery,
+    sort: "relevance",
     limit: String(PAGE_SIZE),
     offset: String(currentOffset),
   });
@@ -251,6 +356,74 @@ async function loadComments({ resetOffset = false } = {}) {
     prevPageBtn.disabled = true;
     nextPageBtn.disabled = true;
     return null;
+  } finally {
+    setSearchBusy(false);
+  }
+}
+
+async function runSearch({ resetOffset = true, message = "" } = {}) {
+  const text = (message || homeQueryEl.value).trim();
+  if (!text) {
+    clearAiConversation();
+    return loadComments({ resetOffset });
+  }
+
+  homeQueryEl.value = text;
+  currentQuery = text;
+  currentSearchMode = "assistant";
+  if (resetOffset) currentOffset = 0;
+  clearError();
+  setResultsVisible(true);
+  setResultsSearchVisible(false);
+  setAiVisible(true);
+  setAiOverview("", { loading: true, question: text });
+  setSearchBusy(true);
+
+  try {
+    const response = await fetch("/api/assistant/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text,
+        conversation_uuid: chatConversationUuid,
+      }),
+    });
+
+    if (!response.ok) {
+      const message = await readErrorMessage(response, "AI search failed");
+      showError(message);
+      setAiOverview("AI overview is unavailable for this search. Showing matching sources instead.", { question: text });
+      return loadComments({ resetOffset: true, preserveAi: true });
+    }
+
+    const payload = await response.json();
+    chatConversationUuid = payload.conversation_uuid || chatConversationUuid;
+    setAiOverview((payload.response || "").trim() || "No AI overview was returned.", { question: text });
+
+    const chatItems = Array.isArray(payload.items) ? payload.items : [];
+    const chatSources = normalizeChatSources(payload.sources);
+    const sources = chatItems.length ? chatItems : chatSources;
+
+    if (sources.length) {
+      renderComments(sources, sources.length, 0, Math.max(PAGE_SIZE, sources.length));
+      return payload;
+    }
+
+    const searchQuery = (payload.search_query || "").trim();
+    if (searchQuery) {
+      homeQueryEl.value = searchQuery;
+      currentQuery = searchQuery;
+    }
+    return loadComments({ resetOffset: true, preserveAi: true });
+  } catch (error) {
+    console.error("AI search failed:", error);
+    const message = `AI search backend is not available right now: ${error.message || error}`;
+    showError(message);
+    setAiOverview("AI overview is unavailable for this search. Showing matching sources instead.", { question: text });
+    return loadComments({ resetOffset: true, preserveAi: true });
+  } finally {
+    aiOverviewEl.classList.remove("loading");
+    setSearchBusy(false);
   }
 }
 
@@ -355,126 +528,32 @@ function markdownToHtml(markdown) {
   return rendered;
 }
 
-function addChatMessage(role, text) {
-  const node = chatMessageTemplate.content.cloneNode(true);
-  const wrapper = node.querySelector(".chat-message");
-  const textEl = node.querySelector(".chat-text");
-  wrapper.classList.add(role);
-  node.querySelector(".chat-role").textContent = role === "user" ? "You" : "Assistant";
-  if (role === "assistant") {
-    textEl.innerHTML = markdownToHtml(String(text || ""));
-  } else {
-    textEl.textContent = String(text || "");
-  }
-  chatLogEl.appendChild(node);
-  chatLogEl.scrollTop = chatLogEl.scrollHeight;
-  return wrapper;
-}
-
-function addChatLoadingMessage() {
-  const node = addChatMessage("assistant", "Searching Manticore sources and generating an answer...");
-  node.classList.add("loading");
-  return node;
-}
-
-async function applyChatInstruction() {
-  const text = chatInputEl.value.trim();
+async function submitFollowup() {
+  const text = followupInputEl.value.trim();
   if (!text) return;
-  clearError();
-
-  addChatMessage("user", text);
-  chatInputEl.value = "";
-  chatSendBtn.disabled = true;
-  chatSendBtn.textContent = "Searching...";
-  chatInputEl.disabled = true;
-  const loadingMessage = addChatLoadingMessage();
-
-  try {
-    const response = await fetch("/api/assistant/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: text,
-        conversation_uuid: chatConversationUuid,
-      }),
-    });
-
-    if (!response.ok) {
-      const message = await readErrorMessage(response, "Conversational search request failed");
-      showError(message);
-      loadingMessage.remove();
-      addChatMessage("assistant", message);
-      return;
-    }
-
-    const payload = await response.json();
-
-    chatConversationUuid = payload.conversation_uuid || chatConversationUuid;
-    const answer = (payload.response || "").trim() || "No response.";
-    loadingMessage.remove();
-    addChatMessage("assistant", answer);
-
-    const chatItems = Array.isArray(payload.items) ? payload.items : [];
-    if (chatItems.length) {
-      const searchQuery = (payload.search_query || "").trim();
-      queryEl.value = searchQuery || text;
-      currentOffset = 0;
-      renderComments(chatItems, chatItems.length, 0, PAGE_SIZE);
-      scrollToResultsTop();
-      return;
-    }
-
-    const chatSources = normalizeChatSources(payload.sources);
-    if (chatSources.length) {
-      const searchQuery = (payload.search_query || "").trim();
-      queryEl.value = searchQuery || text;
-      currentOffset = 0;
-      renderComments(chatSources, chatSources.length, 0, PAGE_SIZE);
-      metaEl.textContent = `${chatSources.length} conversational search source comments`;
-      scrollToResultsTop();
-      return;
-    }
-
-    const searchQuery = (payload.search_query || "").trim();
-    if (searchQuery) {
-      queryEl.value = searchQuery;
-      const searchPayload = await loadComments({ resetOffset: true });
-      if ((searchPayload?.total || 0) === 0) {
-        const originalQuery = text.trim();
-        if (originalQuery && originalQuery !== searchQuery) {
-          queryEl.value = originalQuery;
-          await loadComments({ resetOffset: true });
-        }
-      }
-    }
-  } catch (error) {
-    console.error("Assistant call failed:", error);
-    const message = `Conversational search backend is not available right now: ${error.message || error}`;
-    showError(message);
-    loadingMessage.remove();
-    addChatMessage("assistant", message);
-  } finally {
-    chatSendBtn.disabled = false;
-    chatSendBtn.textContent = "Apply";
-    chatInputEl.disabled = false;
-    chatInputEl.focus();
-  }
+  followupInputEl.value = "";
+  await runSearch({ resetOffset: true, message: text });
+  followupInputEl.focus();
 }
 
-searchBtn.addEventListener("click", () => loadComments({ resetOffset: true }));
-queryEl.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    loadComments({ resetOffset: true });
-  }
-});
-sortEl.addEventListener("change", () => {
+homeFormEl.addEventListener("submit", (event) => {
+  event.preventDefault();
+  currentQuery = homeQueryEl.value.trim();
+  resultsQueryEl.value = currentQuery;
   loadComments({ resetOffset: true });
 });
-chatSendBtn.addEventListener("click", applyChatInstruction);
-chatInputEl.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    applyChatInstruction();
-  }
+homeAiBtn.addEventListener("click", () => {
+  runSearch({ resetOffset: true });
+});
+resultsSearchFormEl.addEventListener("submit", (event) => {
+  event.preventDefault();
+  currentQuery = resultsQueryEl.value.trim();
+  homeQueryEl.value = currentQuery;
+  loadComments({ resetOffset: true });
+});
+followupFormEl.addEventListener("submit", (event) => {
+  event.preventDefault();
+  submitFollowup();
 });
 prevPageBtn.addEventListener("click", () => {
   if (currentOffset <= 0) return;
@@ -488,21 +567,16 @@ nextPageBtn.addEventListener("click", () => {
   scrollToResultsTop();
   loadComments();
 });
-assistantOpenBtn.addEventListener("click", () => setAssistantOpen(true));
-assistantCloseBtn.addEventListener("click", () => setAssistantOpen(false));
 productModalBackdropBtn.addEventListener("click", () => setProductModalOpen(false));
 productModalCloseBtn.addEventListener("click", () => setProductModalOpen(false));
 window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !assistantPopupEl.classList.contains("hidden")) {
-    setAssistantOpen(false);
-    return;
-  }
   if (event.key === "Escape" && !productModalEl.classList.contains("hidden")) {
     setProductModalOpen(false);
   }
 });
 
-loadComments();
-addChatMessage("assistant", "Ask about comments, then I can retrieve related ones.");
-setAssistantOpen(false);
+setResultsVisible(false);
+setAiVisible(false);
+setResultsSearchVisible(false);
+clearAiConversation();
 setProductModalOpen(false);
