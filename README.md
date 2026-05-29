@@ -1,7 +1,8 @@
 # FIQA Comments Conversational Search
 
-FastAPI application for searching FIQA comments in Manticore and running
-conversational search through a Manticore chat model.
+FastAPI demo for asking questions against FIQA comments through Manticore `CALL CHAT`.
+User queries go directly to the Manticore chat model; the app exposes only the
+chat endpoint.
 
 The project entry point is `docker-compose.yml`. It runs the app and Manticore
 on the same Compose network, which matters because the app connects to
@@ -11,7 +12,7 @@ Manticore through the Compose service name `manticore`.
 
 This project uses the FIQA dataset: a financial question-answering dataset built
 from finance-related questions, answers, and comments. The application indexes
-FIQA comments in Manticore and uses them as the retrieval corpus for search and
+FIQA comments in Manticore and uses them as the retrieval corpus for
 conversational answers.
 
 The repository includes a Manticore dump with the FIQA documents and embeddings
@@ -63,15 +64,15 @@ Manticore chat model.
 
 ## API
 
-- `GET /api/comments`
-  - Query params: `q`, `sort`, `limit`, `offset`
 - `POST /api/assistant/chat`
   - Body: `message`, optional `conversation_uuid`
 
 Example:
 
 ```bash
-curl "http://127.0.0.1:8000/api/comments?q=tax&sort=relevance&limit=5&offset=0"
+curl -X POST "http://127.0.0.1:8000/api/assistant/chat" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"What do FIQA comments say about tax?"}'
 ```
 
 ## Manticore Initialization

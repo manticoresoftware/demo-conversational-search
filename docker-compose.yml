@@ -1,6 +1,6 @@
 services:
   manticore:
-    image: manticoresearch/manticore:dev-25.11.0
+    image: manticoresearch/manticore:dev
     env_file:
       - .env
     environment:

@@ -3,33 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FIQA Search</title>
+    <title>FIQA Conversational Search</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon.svg" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260512e" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260529a" />
   </head>
   <body>
     <main id="home-screen" class="home-screen">
-      <a class="home-brand" href="/" aria-label="FIQA Search home">
+      <a class="home-brand" href="/" aria-label="FIQA Conversational Search home">
         <span class="brand-blue">F</span><span class="brand-red">I</span><span class="brand-yellow">Q</span><span class="brand-blue">A</span>
       </a>
-      <form id="home-form" class="home-search" aria-label="Start search">
+      <form id="home-form" class="home-search" aria-label="Ask FIQA">
         <input id="home-query" type="text" placeholder="Ask about finance comments..." autofocus />
         <div class="home-actions">
-          <button id="home-search-btn" type="submit">Search</button>
-          <button id="home-ai-btn" type="button">Ask AI</button>
+          <button id="home-search-btn" type="submit">Ask AI</button>
         </div>
       </form>
     </main>
 
     <main id="results-screen" class="container hidden" hidden>
+      <header class="results-header">
+        <div class="results-header-inner">
+          <a class="results-brand" href="/" aria-label="FIQA Conversational Search home">
+            <span class="brand-blue">F</span><span class="brand-red">I</span><span class="brand-yellow">Q</span><span class="brand-blue">A</span>
+          </a>
+          <form id="results-top-form" class="standard-search results-top-search" aria-label="Ask FIQA from results">
+            <input id="results-query" type="text" placeholder="Ask about finance comments..." />
+            <button id="results-search-btn" type="submit">Search</button>
+          </form>
+        </div>
+      </header>
+
       <section class="results-panel">
         <div id="error-banner" class="error-banner hidden" role="alert" hidden></div>
-
-        <form id="results-search-form" class="results-search-form hidden" aria-label="Search sources" hidden>
-          <input id="results-query" type="text" placeholder="Search sources..." />
-          <button id="results-search-btn" type="submit">Search</button>
-        </form>
 
         <section id="ai-overview" class="ai-overview" aria-live="polite">
           <div id="ai-history" class="ai-history"></div>
@@ -39,15 +45,15 @@
         </section>
 
         <form id="followup-form" class="followup-form" aria-label="Ask a follow-up question">
-          <input id="followup-input" type="text" placeholder="Ask a follow-up" />
+          <textarea id="followup-input" rows="1" placeholder="Ask a follow-up"></textarea>
           <button id="followup-send-btn" type="submit" aria-label="Send follow-up">↑</button>
         </form>
 
-        <section class="source-results">
+        <section id="source-results" class="source-results hidden" hidden>
           <h2>Sources</h2>
           <p id="meta"></p>
           <div id="grid" class="grid"></div>
-          <div class="pagination">
+          <div class="pagination" hidden>
             <button id="prev-page-btn" type="button">Previous</button>
             <div id="page-buttons" class="page-buttons"></div>
             <p id="page-meta" class="page-meta"></p>
@@ -107,6 +113,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=20260512e"></script>
+    <script src="/static/app.js?v=20260529a"></script>
   </body>
 </html>

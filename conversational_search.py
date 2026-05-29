@@ -86,6 +86,7 @@ def create_chat_handler(
     default_table: str,
     default_model: str,
     vector_fields: str,
+    init_message: str,
 ):
     def assistant_chat(req: ChatRequest) -> dict[str, Any]:
         message = req.message.strip()
@@ -116,10 +117,14 @@ def create_chat_handler(
             error_text = str(exc)
             if fields is not None and "expects query, table, model, optional conversation_uuid" in error_text:
                 row = execute_chat(None)
+            elif is_uninitialized_error(error_text):
+                raise HTTPException(status_code=503, detail=init_message) from exc
             else:
                 raise HTTPException(status_code=400, detail=error_text) from exc
         except Exception as exc:
             logger.exception("Conversational search call failed: %s", exc)
+            if init_message in str(exc):
+                raise HTTPException(status_code=503, detail=init_message) from exc
             raise HTTPException(status_code=502, detail=f"Conversational search backend unavailable: {exc}") from exc
 
         if not row:
@@ -137,3 +142,19 @@ def create_chat_handler(
         }
 
     return assistant_chat
+
+
+def is_uninitialized_error(error_text: str) -> bool:
+    text = error_text.lower()
+    return any(
+        needle in text
+        for needle in (
+            "unknown table",
+            "unknown index",
+            "no such table",
+            "table not found",
+            "index not found",
+            "model not found",
+            "unknown chat model",
+        )
+    )
