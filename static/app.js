@@ -3,6 +3,7 @@ const resultsScreenEl = document.getElementById("results-screen");
 const homeFormEl = document.getElementById("home-form");
 const homeQueryEl = document.getElementById("home-query");
 const homeSearchBtn = document.getElementById("home-search-btn");
+const homeGuidedDemoBtn = document.getElementById("home-guided-demo-btn");
 const resultsTopFormEl = document.getElementById("results-top-form");
 const resultsQueryEl = document.getElementById("results-query");
 const resultsSearchBtn = document.getElementById("results-search-btn");
@@ -25,9 +26,14 @@ const productModalPriceEl = document.getElementById("product-modal-price");
 const productModalBrandEl = document.getElementById("product-modal-brand");
 const productModalRatingEl = document.getElementById("product-modal-rating");
 const productModalDescriptionEl = document.getElementById("product-modal-description");
+const homeExampleCardEl = document.getElementById("home-example-card");
+const resultsExampleCardEl = document.getElementById("results-example-card");
 
 let chatConversationUuid = null;
 let aiConversation = [];
+let exampleBank = [];
+let activeExample = null;
+let activeExampleQuestion = null;
 
 function showError(message) {
   errorBannerEl.textContent = message;
@@ -39,6 +45,29 @@ function clearError() {
   errorBannerEl.textContent = "";
   errorBannerEl.classList.add("hidden");
   errorBannerEl.hidden = true;
+}
+
+function chooseRandom(items) {
+  if (!Array.isArray(items) || items.length === 0) return null;
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function sameDocumentId(left, right) {
+  const a = String(left || "").trim();
+  const b = String(right || "").trim();
+  return Boolean(a && b && a === b);
+}
+
+function isActiveExampleSource(comment) {
+  if (sameDocumentId(comment?.document_id || comment?.id, activeExample?.document?.document_id)) {
+    return true;
+  }
+  const referenceContent = String(activeExample?.document?.content || "").trim();
+  const sourceContent = String(comment?.description || comment?.text || comment?.content || "").trim();
+  if (referenceContent.length < 80 || sourceContent.length < 80) return false;
+  const referencePrefix = referenceContent.slice(0, 160);
+  const sourcePrefix = sourceContent.slice(0, 160);
+  return referenceContent.includes(sourcePrefix) || sourceContent.includes(referencePrefix);
 }
 
 function setResultsVisible(isVisible) {
@@ -182,6 +211,7 @@ function setSourcesVisible(isVisible) {
 
 function setBusy(isBusy) {
   homeSearchBtn.disabled = isBusy;
+  homeGuidedDemoBtn.disabled = isBusy;
   resultsQueryEl.disabled = isBusy;
   resultsSearchBtn.disabled = isBusy;
   followupInputEl.disabled = isBusy;
@@ -199,6 +229,106 @@ function renderCommentModal(comment) {
   productModalBrandEl.textContent = `Source: ${comment.source || "Community"}`;
   productModalRatingEl.textContent = `Comment ID: ${comment.document_id || comment.id || "N/A"}`;
   productModalDescriptionEl.textContent = body || "No comment text available.";
+}
+
+function renderExampleCard(targetEl, { compact = false } = {}) {
+  if (!targetEl) return;
+  if (!activeExample) {
+    targetEl.innerHTML = `
+      <p class="eyebrow">Grounded demo</p>
+      <h2>Loading a random FIQA document…</h2>
+    `;
+    return;
+  }
+
+  const doc = activeExample.document || {};
+  const questions = Array.isArray(activeExample.questions) ? activeExample.questions : [];
+  const questionButtons = questions
+    .map((question, index) => {
+      const isActive = question === activeExampleQuestion || question.text === activeExampleQuestion?.text;
+      return `<button class="example-question${isActive ? " active" : ""}" type="button" data-question-index="${index}">${escapeHtml(question.text)}</button>`;
+    })
+    .join("");
+
+  targetEl.innerHTML = `
+    <div class="example-card-head">
+      <div>
+        <p class="eyebrow">Grounded demo</p>
+        <h2>${compact ? "Reference document" : "Start from evidence, not a blank prompt"}</h2>
+      </div>
+      <button class="example-random-btn" type="button">Random document</button>
+    </div>
+    <p class="example-hint">Generate likely questions, click one, then compare the RAG answer and Sources against this document.</p>
+    <article class="example-document">
+      <p class="example-doc-meta">Document ID ${escapeHtml(doc.document_id || "N/A")}</p>
+      <h3>${escapeHtml(doc.title || "FIQA document")}</h3>
+      <p>${escapeHtml(doc.content || "")}</p>
+    </article>
+    <button class="example-generate-btn" type="button">Generate likely questions that this text answers</button>
+    <div class="example-questions${activeExample.questionsVisible ? "" : " hidden"}">
+      ${questionButtons}
+    </div>
+  `;
+
+  targetEl.querySelector(".example-random-btn")?.addEventListener("click", () => setRandomExample());
+  targetEl.querySelector(".example-generate-btn")?.addEventListener("click", () => {
+    activeExample.questionsVisible = true;
+    renderExampleCards();
+  });
+  targetEl.querySelectorAll(".example-question").forEach((button) => {
+    button.addEventListener("click", () => selectExampleQuestion(Number(button.dataset.questionIndex || 0)));
+  });
+}
+
+function renderExampleCards() {
+  renderExampleCard(homeExampleCardEl);
+  renderExampleCard(resultsExampleCardEl, { compact: true });
+}
+
+function setRandomExample() {
+  activeExample = chooseRandom(exampleBank);
+  if (activeExample) {
+    activeExample.questionsVisible = false;
+  }
+  activeExampleQuestion = null;
+  renderExampleCards();
+  renderComments([]);
+}
+
+function showGuidedDemo() {
+  if (!activeExample && exampleBank.length) {
+    setRandomExample();
+  }
+  if (activeExample) {
+    activeExample.questionsVisible = true;
+  }
+  renderExampleCards();
+  homeExampleCardEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function loadExampleBank() {
+  try {
+    const response = await fetch("/static/example_questions.json");
+    if (!response.ok) {
+      throw new Error(await readErrorMessage(response, "Example loading failed"));
+    }
+    exampleBank = await response.json();
+    setRandomExample();
+  } catch (error) {
+    console.error("Example loading failed:", error);
+    const message = `<p class="eyebrow">Grounded demo</p><h2>Example questions unavailable</h2><p class="example-hint">${escapeHtml(error.message || String(error))}</p>`;
+    if (homeExampleCardEl) homeExampleCardEl.innerHTML = message;
+    if (resultsExampleCardEl) resultsExampleCardEl.innerHTML = message;
+  }
+}
+
+async function selectExampleQuestion(index) {
+  if (!activeExample) return;
+  activeExample.questionsVisible = true;
+  activeExampleQuestion = activeExample.questions?.[index] || null;
+  renderExampleCards();
+  if (!activeExampleQuestion) return;
+  await askAi({ message: activeExampleQuestion.text, resetConversation: true });
 }
 
 function normalizeChatSources(sources) {
@@ -225,7 +355,9 @@ function renderComments(items) {
   gridEl.innerHTML = "";
   const visibleItems = Array.isArray(items) ? items : [];
   setSourcesVisible(visibleItems.length > 0);
-  metaEl.textContent = visibleItems.length ? `${visibleItems.length} source${visibleItems.length === 1 ? "" : "s"}` : "";
+  metaEl.textContent = visibleItems.length
+    ? `${visibleItems.length} source${visibleItems.length === 1 ? "" : "s"}${activeExampleQuestion ? " · reference document is highlighted if retrieved" : ""}`
+    : "";
 
   for (const comment of visibleItems) {
     const node = template.content.cloneNode(true);
@@ -235,8 +367,10 @@ function renderComments(items) {
     const commentId = comment.document_id || comment.id || "N/A";
     const source = (comment.source || "").trim() || "Community";
 
+    const isReferenceSource = isActiveExampleSource(comment);
+
     node.querySelector(".title").textContent = headline.slice(0, 160);
-    node.querySelector(".rating").textContent = source;
+    node.querySelector(".rating").textContent = isReferenceSource ? `${source} · reference document` : source;
     node.querySelector(".bought").textContent = `Comment ID ${commentId}`;
     node.querySelector(".id").textContent = comment.knn_dist == null ? `ID: ${comment.id || "N/A"}` : `KNN distance: ${Number(comment.knn_dist).toFixed(4)}`;
     node.querySelector(".brand").textContent = `Source: ${source}`;
@@ -255,6 +389,9 @@ function renderComments(items) {
 
     const cardEl = node.querySelector(".card");
     cardEl.classList.add("clickable");
+    if (isReferenceSource) {
+      cardEl.classList.add("reference-source-card");
+    }
     cardEl.addEventListener("click", () => {
       renderCommentModal(comment);
       setProductModalOpen(true);
@@ -446,10 +583,15 @@ function resizeFollowup() {
 
 homeFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
+  activeExampleQuestion = null;
+  renderExampleCards();
   askAi({ resetConversation: true });
 });
+homeGuidedDemoBtn.addEventListener("click", showGuidedDemo);
 resultsTopFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
+  activeExampleQuestion = null;
+  renderExampleCards();
   askAi({ message: resultsQueryEl.value, resetConversation: true });
 });
 followupFormEl.addEventListener("submit", (event) => {
@@ -476,3 +618,4 @@ setAiVisible(false);
 clearAiConversation();
 renderComments([]);
 setProductModalOpen(false);
+loadExampleBank();

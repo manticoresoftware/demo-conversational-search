@@ -1,0 +1,422 @@
+[
+  {
+    "document": {
+      "id": "58103-0-1582",
+      "document_id": "58103-0-1582",
+      "title": "Roth 401k deferrals",
+      "source": "Community",
+      "url": "",
+      "content": "The \"Deferral\" for the 401k means that you're not collecting your pay immediately, but instead diverting it to a retirement account (Roth 401k in this case). This article defines deferral well: What is the difference between a regular 401(k) deferral (pre-tax) and a Roth 401(k) deferral?  Under either a regular 401(k) deferral or a Roth 401(k) deferral, you   make a deferral contribution by electing to set  aside part of your   pay (by either a certain percentage or a certain dollar amount).  For   a regular 401(k) deferral, the  taxable wages on your W-2 are reduced   by the deferral contribution; therefore, you pay less current income   tax.   However, you will eventually pay tax on these contributions and   earnings when the plan distributes the regular  401(k) deferrals and   earnings to you.  The result is that the tax on the regular 401(k)   deferrals and earnings is only  postponed.  A Roth 401(k) deferral is an after-tax contribution, which  means you   must pay current income tax on the deferral.   Since you have already   paid tax on the deferral, you won’t pay tax on it again when you   receive a distribution of  your Roth 401(k) deferral.  In addition, if   you satisfy cer tain distribution conditions, then you won’t have to   pay tax  on the earnings either.  This means  that the distribution of   the Roth 401(k) earnings can be tax free not just tax  postponed. Traditionally, this deferred compensation typically was directed to a 401k, but now that Roth 401k is another available option, deferred compensation can be directed there as well."
+    },
+    "questions": [
+      {
+        "text": "What does deferral for the 401k mean about collecting your pay immediately?"
+      },
+      {
+        "text": "How do regular 401(k) deferrals reduce taxable wages on your W-2?"
+      },
+      {
+        "text": "Why is a Roth 401(k) deferral an after-tax contribution?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "27930-0-580",
+      "document_id": "27930-0-580",
+      "title": "S&P 500 and NIFTY index funds",
+      "source": "Community",
+      "url": "",
+      "content": "Also, when they mean SP500 fund - it means that fund which invests in the top 500 companies in the SP Index, is my understanding correct? Yes that is right. In reality they may not be able to invest in all 500 companies in same proportion, but is reflective of the composition. I wanted to know whether India also has a company similar to Vanguard which offers low cost index funds. Almost all mutual fund companies offer a NIFTY index fund, both as mutual fund as well as ETF. You can search for index fund and see the total assets to find out which is bigger compared to others."
+    },
+    "questions": [
+      {
+        "text": "What does an SP500 fund invest in among the top 500 companies in the SP Index?"
+      },
+      {
+        "text": "Can an SP500 fund invest in all 500 companies in the same proportion?"
+      },
+      {
+        "text": "What NIFTY index fund options are offered as mutual fund and ETF in India?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "28504-0-2118",
+      "document_id": "28504-0-2118",
+      "title": "How car insurance premiums are priced",
+      "source": "Community",
+      "url": "",
+      "content": "First you should understand the basics of how insurance companies make money: In a simple scenario, assume 1,000 have car insurance. Assume that on average, 100 people have accidents per year, and that each accident costs $10,000. So, we can expect total costs to be $1,000,000 per year. Some of those costs will be paid by the drivers, who have some sort of 'deductible'. That is - the insurance company will only cover costs after the driver has themself paid some initial amount [something like, the first $1,000 of repairs is paid by the driver]. So now the insurance company expects to have to pay out $900,000 in total claims this year. If they want to pay those claims (and also pay their administrative costs, and earn a profit), they might want to have $1,250,000 in revenue. Across 1,000 people, that would be $1,250 / year in insurance premiums. Of course, the big question for the insurance company is: how much will they really need to pay out in insurance claims each year? The better they can predict that number, the more profitable they can be [because they can charge a much more accurate amount, which can earn them new customers and gives them insurance {pun} that each new customer is actually profitable to them on average]. So the insurance company spends a lot of time and money trying to predict your likelihood of a car accident. They use a lot of metrics to do this. Some might be statistical hogwash that they charge you because they feel they can [if every insurance company charges you extra for driving a 2-door instead of a 4-door, then they all will], and some might be based in reality. So they attempt to correlate all of the items in your list, to see if any of those items indicates that you should be charged more (or less) for your insurance. This is equal parts art and science, and a lot of it comes down to how they market themselves. ie: if an insurance company gives a discount for being in college, is that because college drivers are better drivers, or is it because they want to increase the number of young customers they have, so they can keep those customers for life?"
+    },
+    "questions": [
+      {
+        "text": "After a $1,000 deductible, why does the insurance company expect $900,000 in total claims?"
+      },
+      {
+        "text": "What yearly insurance premium comes from $1,250,000 revenue across 1,000 people?"
+      },
+      {
+        "text": "Why do insurance companies predict your likelihood of a car accident?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "20335-0-1401",
+      "document_id": "20335-0-1401",
+      "title": "Company valuation from assets and future profit",
+      "source": "Community",
+      "url": "",
+      "content": "The textbook answer would be \"assets-liabilities+present discounted value of all future profit\".  A&L is usually simple (if a company has an extra $1m in cash, it's worth $1m more; if it has an extra $1m in debt, it's worth $1m less). If a company with ~0 assets and $50k in profit has a $1m valuation, then that implies that whoever makes that valuation (wants to buy at that price) really believes one of two things - either the future profit will be significantly larger than $50k (say, it's rapidly growing);  or the true worth of assets is much more - say, there's some IP/code/patents/people that have low book value but some other company would pay $1m just to get that. The point is that valuation is subjective since the key numbers in the calculations are not perfectly known by anyone who doesn't have a time machine, you can make estimates but the knowledge to make the estimates varies (some buyers/sellers have extra information), and they can be influenced by those buyers/sellers; e.g. for strategic acquisitions the value of company is significantly changed simply because someone claims they want to acquire it. And, $1m valuation for a company with $500m in profits isn't appropriate - it's appropriate only if the profits are expected to drop to zero within a couple years; a stagnant but stable company with $500m profits would be worth at least $5m and potentially much more."
+    },
+    "questions": [
+      {
+        "text": "What textbook valuation formula uses assets minus liabilities plus discounted future profit?"
+      },
+      {
+        "text": "Why is a company worth more if it has an extra $1m in cash?"
+      },
+      {
+        "text": "Why is valuation subjective when future profits are not perfectly known?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "252762-0-2019",
+      "document_id": "252762-0-2019",
+      "title": "Credit card utilization scoring",
+      "source": "Community",
+      "url": "",
+      "content": "\"First I want to be sure Op understands how \"Credit Utilization\" is scored as this confuses many folks here in the US. There is no \"reward\" for charging money or carrying balances, only penalty. If you have one credit card with a $10,000 limit and owe $8,000 you have an 80% utilization which will signal to banks that you are having financial difficulties. (Anything over 30% on a single card is usually penalized significantly.) The ideal utilization is something around 0, which is in the ballpark of the 5% Op mentioned. Again there is never any direct benefit to your credit of spending a penny on any of your credit cards.* Banks offer the best rates to people that pay off their balances each month or don't use their cards in the first place. Why? Despite the system being imperfect in many ways, utilization is a good indicator. Example: If you have a card with a $10,000 limit and pay it off every month that speaks to you being a good risk. If you compared this person to the person above, who do you think would be the most likely to pay back a car loan? Finally, Utilization is a small part of the credit score. I would call it more of a \"hurdle\" than a factor, at least concerning good rates and approvals. Most of your credit, is based on length of history, paying on time, and having multiple types of credit. Real life example: I had a relative that had perfect payment history for decades. They got divorced and started accumulating a balance. The person got other cards with 0% apr to avoid the interest, but their balance only grew. -They had to use the card to make ends meet, etc. (3 kids, single parent) They ended up filing a sizable bankruptcy a few years later. This was one of the most responsible people I've ever known. (Yes that statement will seem far fetched to someone else. It was almost impossible to get them to file bankruptcy, even though there was no way to ever pay the money back.) The point? Utilization shows a more 'current' picture than some of the other portions due."
+    },
+    "questions": [
+      {
+        "text": "Why does 80% credit card utilization signal financial difficulties to banks?"
+      },
+      {
+        "text": "Why is anything over 30% utilization on a single credit card usually penalized?"
+      },
+      {
+        "text": "What is the ideal credit card utilization mentioned as around 0 or 5 percent?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "61787-0-2047",
+      "document_id": "61787-0-2047",
+      "title": "Dividend reinvestment plans",
+      "source": "Community",
+      "url": "",
+      "content": "I think Wikipedia offers a very good explanation: A dividend reinvestment program or dividend reinvestment plan (DRIP) is an equity investment option offered directly from the underlying company. The investor does not receive quarterly dividends directly as cash; instead, the investor's dividends are directly reinvested in the underlying equity. The investor must still pay tax annually on his or her dividend income, whether it is received or reinvested. This allows the investment return from dividends to be immediately invested for the purpose of price appreciation and compounding, without incurring brokerage fees or waiting to accumulate enough cash for a full share of stock. So essentially, a dividend reinvestment plan is offered by companies directly, allowing investors to bypass brokerages, and immediately re-invests dividends rather than paying them out in cash. Investopedia also gives a straighforward definition: A plan offered by a corporation that allows investors to reinvest their cash dividends by purchasing additional shares or fractional shares on the dividend payment date.  A DRIP is an excellent way to increase the value of your investment. Most DRIPs allow you to buy shares commission free and at a significant discount to the current share price. Most DRIPS don't allow reinvestments much lower than $10.  I had a hard time finding a comprehensive listing of companies that offered DRPs (or DRIPs), but MyDollarPlan.com offers these suggestions:  Finding a Dividend Reinvestment Plan: Computershare offers one-stop shopping for hundreds of dividend reinvestment plans. They offer a searchable list that can be filtered to easily find a dividend reinvestment plan that fits your needs. You can also use OneShare. Probably the best way to find out if a company offers a dividend reinvestment plan is to visit the company website. Most companies have an Investor Relations area that will highlight the various options available to shareowners. For example: Coca-Cola, Disney, and Wal-Mart. Hope this helps! @YMCbuzz"
+    },
+    "questions": [
+      {
+        "text": "What is a dividend reinvestment plan or DRIP?"
+      },
+      {
+        "text": "Why does a DRIP reinvest quarterly dividends instead of paying cash to the investor?"
+      },
+      {
+        "text": "How can Computershare help find dividend reinvestment plans?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "394179-0-570",
+      "document_id": "394179-0-570",
+      "title": "Mortgage principal and interest payments",
+      "source": "Community",
+      "url": "",
+      "content": "Simply put, for a mortgage, interest is charged only on the balance as well. Think of it this way - on a $100K 6% loan, on day one, 1/2% is $500, and the payment is just under $600, so barely $100 goes to principal. But the last payment of $600 is nearly all principal.  By the way, you are welcome to make extra principal payments along with the payment due each month. An extra $244 in this example, paid each and every month, will drop the term to just 15 years. Think about that, 40% higher payment, all attacking the principal, and you cut the term by 1/2 the time."
+    },
+    "questions": [
+      {
+        "text": "How is mortgage interest charged only on the remaining balance?"
+      },
+      {
+        "text": "On a $100K 6% mortgage, why does barely $100 of the first payment go to principal?"
+      },
+      {
+        "text": "Why is the last mortgage payment nearly all principal?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "89297-0-700",
+      "document_id": "89297-0-700",
+      "title": "Mutual fund expense ratios",
+      "source": "Community",
+      "url": "",
+      "content": "Annual-report expense ratios reflect the actual fees charged during a particular fiscal year.  Prospectus Expense Ratio (net) shows expenses the fund company anticipates will actually be borne by the fund's shareholders in the upcoming fiscal year less any expense waivers, offsets or reimbursements. Prospectus Gross Expense Ratio is the percentage of fund assets used to pay for operating expenses and management fees, including 12b-1 fees, administrative fees, and all other asset-based costs incurred by the fund, except brokerage costs. Fund expenses are reflected in the fund's NAV. Sales charges are not included in the expense ratio. All of these ratios are gathered from a fund's prospectus."
+    },
+    "questions": [
+      {
+        "text": "What do annual-report expense ratios reflect for a mutual fund?"
+      },
+      {
+        "text": "What does Prospectus Expense Ratio net show for fund shareholders?"
+      },
+      {
+        "text": "What does Prospectus Gross Expense Ratio include for fund operating expenses and management fees?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "115922-0-1375",
+      "document_id": "115922-0-1375",
+      "title": "Marginal tax brackets",
+      "source": "Community",
+      "url": "",
+      "content": "Tax brackets refer to the range of taxable within which you fall. An income tax bracket usually refers to federal or state tax, not the combined rate. I have put here the tax brackets for 2016 for IRS and State of California.  https://www.irs.com/articles/2016-federal-tax-rates-personal-exemptions-and-standard-deductions  https://www.ftb.ca.gov/forms/2016-california-tax-rates-and-exemptions.shtml According to those, a taxable income of 100,000USD would fall in the 28% bracket for the IRS and 9.30% for State of California. The combined rate is therefore 37.3%. However, this does not mean you would pay 37,300USD. First of all, your applicable tax rate applies only for each dollar in your tax bracket (e.g. 28% * 8,849USD for IRS). Therefore, to calculate your combined taxes you would need to do:  Therefore, your effective tax rate would be much lower than the combined tax rate of 37.3%. Now do note that this is an example to illustrate tax brackets and is nowhere near the amount of taxes you would be required to pay because of various credits and deductions that you would be able to benefit from. Edit: As suggested in the comments, a note on marginal tax rate (referred to here as combined tax rate). This is the rate of taxes paid on an additional dollar of income. Here, every additional dollar of income would be taxed at 37.3%, leaving you with 62.7 cents."
+    },
+    "questions": [
+      {
+        "text": "What do tax brackets refer to for taxable income?"
+      },
+      {
+        "text": "Why does a 37.3% combined marginal rate not mean paying $37,300 on $100,000 income?"
+      },
+      {
+        "text": "How does the applicable tax rate apply only to each dollar in your tax bracket?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "489368-0-365",
+      "document_id": "489368-0-365",
+      "title": "Credit card grace periods",
+      "source": "Community",
+      "url": "",
+      "content": "Each bank is different. Usually in my experience for newer credit card accounts, there is a specific number of days in a billing cycle (something like 28) and then a 20-25 day grace period. Older accounts usually have 30+ day billing cycles. Back in the 90's, many cards also had 30-40 day grace periods. The language specific to your card is in the card agreement."
+    },
+    "questions": [
+      {
+        "text": "How long is a typical credit card grace period for newer accounts?"
+      },
+      {
+        "text": "How many days are often in a newer credit card billing cycle?"
+      },
+      {
+        "text": "How did older credit card accounts differ in billing cycles and grace periods?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "277581-0-204",
+      "document_id": "277581-0-204",
+      "title": "529 college savings plans",
+      "source": "Community",
+      "url": "",
+      "content": "A 529 plan! The savings can only be used for education purposes, but you can use them for ANYONE and even change the beneficiary.  Distributions are tax free, and contributions are usually state tax free."
+    },
+    "questions": [
+      {
+        "text": "What can 529 plan savings be used for?"
+      },
+      {
+        "text": "Can a 529 plan be used for anyone and change the beneficiary?"
+      },
+      {
+        "text": "Are 529 plan distributions tax free?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "59710-0-338",
+      "document_id": "59710-0-338",
+      "title": "30 year mortgage rates and 10 year treasury yields",
+      "source": "Community",
+      "url": "",
+      "content": "One will find that the fixed 30 year mortgage rate is tightly correlated to the 10 year treasury. An adder of 2-2.5% or so, changing slightly with the rest of the economy, as money can get tight or loose independent of the rate itself. In 2011 we are witnessing low rates yet tough loan standards, this is the phenomenon I am referencing."
+    },
+    "questions": [
+      {
+        "text": "How is the fixed 30 year mortgage rate correlated to the 10 year treasury?"
+      },
+      {
+        "text": "What adder above the 10 year treasury is mentioned for fixed 30 year mortgage rates?"
+      },
+      {
+        "text": "Why were low rates and tough loan standards both seen in 2011?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "127434-9960-10478",
+      "document_id": "127434-9960-10478",
+      "title": "10-year bond yields and mortgage rates",
+      "source": "Community",
+      "url": "",
+      "content": "Buyers bid for those, and the resulting prices imply the yield rate. If the yield rate for current 10-year bonds increases, then banks take it as a sign that everyone in the investment community sees some sign of increased risk in the future. This might be from inflation. This might be from uncertain economic performance. But whatever it is, they operate with some rule of thumb that their 30-year mortgage rate for excellent credit borrowers will be the 10-year plus 1.5% or something. And they publish their rates."
+    },
+    "questions": [
+      {
+        "text": "How do 10-year bond yield rates affect 30-year mortgage rates for excellent credit borrowers?"
+      },
+      {
+        "text": "Why do banks use the 10-year yield as a sign of increased future risk?"
+      },
+      {
+        "text": "What rule of thumb adds about 1.5% to the 10-year yield for mortgage rates?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "480423-0-917",
+      "document_id": "480423-0-917",
+      "title": "Backdoor Roth IRA legal background",
+      "source": "Community",
+      "url": "",
+      "content": "\"The backdoor Roth IRA contribution has been possible for a few years now and is fairly widely known. The IRS hasn't said anything negative about it. An answer to my question here mentions that it could hypothetically be disallowed through the \"\"step transaction doctrine\"\", although that is the only time I have heard that possibility raised. For some background, the income limit on Roth conversions was removed as a \"\"revenue-offsetting provision\"\" of the Tax Increase Prevention and Reconciliation Act of 2005. They want people who have deducted contributions in Traditional IRAs to convert to Roth and pay taxes now rather than waiting many years until retirement. Conversely, people performing the backdoor Roth IRA contribution have already paid taxes on that money and it's just preventing them from having to pay taxes many years later. It's easy to see how Congress would find this a satisfactory exchange.\""
+    },
+    "questions": [
+      {
+        "text": "Why has the backdoor Roth IRA contribution been possible for a few years?"
+      },
+      {
+        "text": "What is the step transaction doctrine concern for backdoor Roth IRA contributions?"
+      },
+      {
+        "text": "Why did removing the income limit on Roth conversions encourage people to pay taxes now?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "169688-0-494",
+      "document_id": "169688-0-494",
+      "title": "Student loan daily interest accrual",
+      "source": "Community",
+      "url": "",
+      "content": "The interest accrues daily based on the amount you owe.  The less you owe the less the daily interest accrual.  The faster you pay it off the less you pay in the lifetime of the loan.  You are losing money if you bank money rather than applying it to the loan immediately.  Since student loans cannot be declared in bankruptcy and interest rates cannot be refinanced, or are nonnegotiable, then you should consider your student loan a priority in case your employment/income runs into problems."
+    },
+    "questions": [
+      {
+        "text": "How does student loan interest accrue based on the amount owed?"
+      },
+      {
+        "text": "Why does paying a student loan faster reduce lifetime interest?"
+      },
+      {
+        "text": "Why should student loans be a priority if they cannot be discharged in bankruptcy?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "553856-0-195",
+      "document_id": "553856-0-195",
+      "title": "Dividend stocks for cash-flow investors",
+      "source": "Community",
+      "url": "",
+      "content": "Some investors (pension funds or insurance companies) need to pay out a certain amount of money to their clients. They need cash on a periodical basis, and thus prefer dividend paying stock more."
+    },
+    "questions": [
+      {
+        "text": "Why do pension funds and insurance companies prefer dividend paying stocks?"
+      },
+      {
+        "text": "Why do some investors need cash from investments on a periodical basis?"
+      },
+      {
+        "text": "Who may need to pay out a certain amount of money to clients from dividend stocks?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "505213-0-684",
+      "document_id": "505213-0-684",
+      "title": "Emergency fund liquidity during disaster recovery",
+      "source": "Community",
+      "url": "",
+      "content": "Having a highly liquid emergency fund can lubricate the wheels for disaster recovery.  For example, several years ago I returned from a vacation to discover that, during my absence, a plumbing fixture had broken and my house was flooded. Since we had sufficient liquidity to cover the cost of the repairs in our emergency fund, the insurance company was much easier to deal with, and the relationships between the contractor, bank, and insurance company were much smoother. The bank was able to approve the insurance in minutes versus days. Ironically, we didn't actually have to touch our emergency fund precisely because we had it. Clarification - I make it a point to have no debt."
+    },
+    "questions": [
+      {
+        "text": "How can a highly liquid emergency fund help disaster recovery?"
+      },
+      {
+        "text": "Why did having emergency fund liquidity make the insurance company easier to deal with?"
+      },
+      {
+        "text": "How did liquidity help relationships between contractor bank and insurance company after a flood?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "13275-0-369",
+      "document_id": "13275-0-369",
+      "title": "Rolling over a previous employer 401k into an IRA",
+      "source": "Community",
+      "url": "",
+      "content": "I've changed jobs several times and I chose to rollover my 401k from the previous employer into an IRA instead of the new employer's 401k plan.  The biggest reason not to rollover the 401k into the new employer's 401k plan was due to the limited investments offered by 401k plans.  I found it better to roll the 401k into an IRA where I can invest in any stock or fund."
+    },
+    "questions": [
+      {
+        "text": "Why did the author roll over a previous employer 401k into an IRA?"
+      },
+      {
+        "text": "What was the biggest reason not to roll a 401k into a new employer plan?"
+      },
+      {
+        "text": "How did changing jobs lead the author to rollover a 401k from a previous employer into an IRA?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "222836-0-1150",
+      "document_id": "222836-0-1150",
+      "title": "Backdoor Roth IRA versus mega backdoor Roth",
+      "source": "Community",
+      "url": "",
+      "content": "It sounds like you're comparing (1) the backdoor Roth IRA and (2) the mega backdoor Roth. Although the names are similar they are considerably different, and not mutually exclusive. The goal of the backdoor Roth IRA is to contribute to a Roth IRA even if you are over the income limits. This is accomplished by contributing to a non-deductible Traditional IRA and then converting to Roth. Both of these steps have no income limit (unlike a direct Roth IRA contribution, which does), and only the earnings (which should be minimal) will be taxed. More info here (mirror). The goal of the mega backdoor Roth is to get a lot of money into Roth accounts through salary deferral. This is accomplished by making non-Roth after-tax contributions to your 401(k) after exhausting the $18,000 limit (in 2017) for pre-tax + Roth employee contributions. The after-tax contributions (potentially up to $36,000 for 2017) can be rolled over to the Roth 401(k) or to a Roth IRA, while the earnings can be rolled over to the pre-tax 401(k) or a Traditional IRA, or taxed like regular income and converted to Roth along with the contributions. More info here (mirror)."
+    },
+    "questions": [
+      {
+        "text": "What is the goal of the backdoor Roth IRA for people over income limits?"
+      },
+      {
+        "text": "What two steps accomplish a backdoor Roth IRA contribution over the income limits?"
+      },
+      {
+        "text": "How does the mega backdoor Roth use non-Roth after-tax 401(k) contributions?"
+      }
+    ]
+  },
+  {
+    "document": {
+      "id": "33208-0-275",
+      "document_id": "33208-0-275",
+      "title": "IRA dividends and tax deferral",
+      "source": "Community",
+      "url": "",
+      "content": "The dividend goes into the IRA (either reinvested automatically or remains as cash until you invest it, per your choice). You're not taxed on this dividend (IRA is a taxed-deferred account - you're taxed on the distributions, but not on the capital gains within the account)."
+    },
+    "questions": [
+      {
+        "text": "Where does a dividend go inside an IRA account?"
+      },
+      {
+        "text": "Why are dividends inside an IRA not taxed immediately?"
+      },
+      {
+        "text": "Can an IRA dividend be reinvested automatically or remain as cash?"
+      }
+    ]
+  }
+]

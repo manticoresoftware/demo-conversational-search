@@ -6,7 +6,7 @@
     <title>FIQA Conversational Search</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon.svg" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260529a" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260603a" />
   </head>
   <body>
     <main id="home-screen" class="home-screen">
@@ -17,8 +17,12 @@
         <input id="home-query" type="text" placeholder="Ask about finance comments..." autofocus />
         <div class="home-actions">
           <button id="home-search-btn" type="submit">Ask AI</button>
+          <button id="home-guided-demo-btn" class="home-guided-demo-btn" type="button">Try guided RAG check</button>
         </div>
+        <p class="home-guided-hint">Not sure what to ask? Start from a real FIQA document and use generated questions whose answers are in that text.</p>
       </form>
+
+      <section id="home-example-card" class="example-card home-example-card" aria-label="Grounded demo example"></section>
     </main>
 
     <main id="results-screen" class="container hidden" hidden>
@@ -34,33 +38,37 @@
         </div>
       </header>
 
-      <section class="results-panel">
-        <div id="error-banner" class="error-banner hidden" role="alert" hidden></div>
+      <div class="results-layout">
+        <aside id="results-example-card" class="example-card results-example-card" aria-label="Grounding document and generated questions"></aside>
 
-        <section id="ai-overview" class="ai-overview" aria-live="polite">
-          <div id="ai-history" class="ai-history"></div>
-          <div id="ai-answer" class="ai-answer hidden" hidden>
-            <p>Ask a finance question to generate an answer from FIQA comments. Sources will appear below.</p>
-          </div>
+        <section class="results-panel">
+          <div id="error-banner" class="error-banner hidden" role="alert" hidden></div>
+
+          <section id="ai-overview" class="ai-overview" aria-live="polite">
+            <div id="ai-history" class="ai-history"></div>
+            <div id="ai-answer" class="ai-answer hidden" hidden>
+              <p>Ask a finance question to generate an answer from FIQA comments. Sources will appear below.</p>
+            </div>
+          </section>
+
+          <form id="followup-form" class="followup-form" aria-label="Ask a follow-up question">
+            <textarea id="followup-input" rows="1" placeholder="Ask a follow-up"></textarea>
+            <button id="followup-send-btn" type="submit" aria-label="Send follow-up">↑</button>
+          </form>
+
+          <section id="source-results" class="source-results hidden" hidden>
+            <h2>Sources</h2>
+            <p id="meta"></p>
+            <div id="grid" class="grid"></div>
+            <div class="pagination" hidden>
+              <button id="prev-page-btn" type="button">Previous</button>
+              <div id="page-buttons" class="page-buttons"></div>
+              <p id="page-meta" class="page-meta"></p>
+              <button id="next-page-btn" type="button">Next</button>
+            </div>
+          </section>
         </section>
-
-        <form id="followup-form" class="followup-form" aria-label="Ask a follow-up question">
-          <textarea id="followup-input" rows="1" placeholder="Ask a follow-up"></textarea>
-          <button id="followup-send-btn" type="submit" aria-label="Send follow-up">↑</button>
-        </form>
-
-        <section id="source-results" class="source-results hidden" hidden>
-          <h2>Sources</h2>
-          <p id="meta"></p>
-          <div id="grid" class="grid"></div>
-          <div class="pagination" hidden>
-            <button id="prev-page-btn" type="button">Previous</button>
-            <div id="page-buttons" class="page-buttons"></div>
-            <p id="page-meta" class="page-meta"></p>
-            <button id="next-page-btn" type="button">Next</button>
-          </div>
-        </section>
-      </section>
+      </div>
     </main>
 
     <div id="product-modal" class="product-modal hidden" hidden>
@@ -113,6 +121,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=20260529a"></script>
+    <script src="/static/app.js?v=20260603a"></script>
   </body>
 </html>
