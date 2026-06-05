@@ -71,7 +71,7 @@ function isTextActiveExampleSource(comment) {
 }
 
 function findActiveExampleSourceIndex(items) {
-  if (!activeExampleQuestion || !Array.isArray(items) || items.length === 0) {
+  if (!activeExample?.document || !Array.isArray(items) || items.length === 0) {
     return -1;
   }
 
@@ -352,7 +352,7 @@ function chooseRandomQuestionForHome() {
 
 async function loadExampleBank() {
   try {
-    const response = await fetch("/static/example_questions.json?v=20260605o");
+    const response = await fetch("/static/example_questions.json?v=20260605p");
     if (!response.ok) {
       throw new Error(await readErrorMessage(response, "Example loading failed"));
     }
@@ -399,7 +399,7 @@ function renderComments(items) {
   const visibleItems = Array.isArray(items) ? items : [];
   setSourcesVisible(visibleItems.length > 0);
   metaEl.textContent = visibleItems.length
-    ? `${visibleItems.length} source${visibleItems.length === 1 ? "" : "s"}${activeExampleQuestion ? " · reference document is highlighted if retrieved" : ""}`
+    ? `${visibleItems.length} source${visibleItems.length === 1 ? "" : "s"}${activeExample?.document ? " · reference document is highlighted if retrieved" : ""}`
     : "";
   const referenceSourceIndex = findActiveExampleSourceIndex(visibleItems);
 
