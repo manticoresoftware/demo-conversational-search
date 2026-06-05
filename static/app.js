@@ -2,8 +2,8 @@ const homeScreenEl = document.getElementById("home-screen");
 const resultsScreenEl = document.getElementById("results-screen");
 const homeFormEl = document.getElementById("home-form");
 const homeQueryEl = document.getElementById("home-query");
+const homeRandomQuestionBtn = document.getElementById("home-random-question-btn");
 const homeSearchBtn = document.getElementById("home-search-btn");
-const homeGuidedDemoBtn = document.getElementById("home-guided-demo-btn");
 const resultsTopFormEl = document.getElementById("results-top-form");
 const resultsQueryEl = document.getElementById("results-query");
 const resultsSearchBtn = document.getElementById("results-search-btn");
@@ -23,7 +23,6 @@ const productModalBackdropBtn = document.getElementById("product-modal-backdrop"
 const productModalCloseBtn = document.getElementById("product-modal-close-btn");
 const productModalTitleEl = document.getElementById("product-modal-title");
 const productModalPriceEl = document.getElementById("product-modal-price");
-const productModalBrandEl = document.getElementById("product-modal-brand");
 const productModalRatingEl = document.getElementById("product-modal-rating");
 const productModalDescriptionEl = document.getElementById("product-modal-description");
 const homeExampleCardEl = document.getElementById("home-example-card");
@@ -58,16 +57,30 @@ function sameDocumentId(left, right) {
   return Boolean(a && b && a === b);
 }
 
-function isActiveExampleSource(comment) {
-  if (sameDocumentId(comment?.document_id || comment?.id, activeExample?.document?.document_id)) {
-    return true;
-  }
+function isExactActiveExampleSource(comment) {
+  return sameDocumentId(comment?.document_id || comment?.id, activeExample?.document?.document_id);
+}
+
+function isTextActiveExampleSource(comment) {
   const referenceContent = String(activeExample?.document?.content || "").trim();
   const sourceContent = String(comment?.description || comment?.text || comment?.content || "").trim();
   if (referenceContent.length < 80 || sourceContent.length < 80) return false;
   const referencePrefix = referenceContent.slice(0, 160);
   const sourcePrefix = sourceContent.slice(0, 160);
   return referenceContent.includes(sourcePrefix) || sourceContent.includes(referencePrefix);
+}
+
+function findActiveExampleSourceIndex(items) {
+  if (!activeExampleQuestion || !Array.isArray(items) || items.length === 0) {
+    return -1;
+  }
+
+  const exactIndex = items.findIndex(isExactActiveExampleSource);
+  if (exactIndex >= 0) {
+    return exactIndex;
+  }
+
+  return items.findIndex(isTextActiveExampleSource);
 }
 
 function setResultsVisible(isVisible) {
@@ -88,6 +101,20 @@ function setAiVisible(isVisible) {
 function setFollowupVisible(isVisible) {
   followupFormEl.classList.toggle("hidden", !isVisible);
   followupFormEl.hidden = !isVisible;
+}
+
+function sqlQuote(value) {
+  return `'${String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
+}
+
+function buildChatSql(message) {
+  return `CALL CHAT(${[
+    sqlQuote(message),
+    sqlQuote("fiqa_docs"),
+    sqlQuote("assistant"),
+    sqlQuote(chatConversationUuid || ""),
+    sqlQuote("embedding_vector"),
+  ].join(", ")})`;
 }
 
 function renderAiConversation({ loadingQuestion = "", transientTurn = null } = {}) {
@@ -121,7 +148,11 @@ function renderAiConversation({ loadingQuestion = "", transientTurn = null } = {
 
     const answer = document.createElement("div");
     answer.className = "ai-answer";
-    answer.innerHTML = "<p>Generating an answer from FIQA sources...</p>";
+    const sql = buildChatSql(loadingQuestion);
+    answer.innerHTML = `
+      <p>Executing SQL request:</p>
+      <pre class="chat-sql"><code>${escapeHtml(sql)}</code></pre>
+    `;
     article.appendChild(answer);
 
     aiHistoryEl.appendChild(article);
@@ -211,7 +242,7 @@ function setSourcesVisible(isVisible) {
 
 function setBusy(isBusy) {
   homeSearchBtn.disabled = isBusy;
-  homeGuidedDemoBtn.disabled = isBusy;
+  homeRandomQuestionBtn.disabled = isBusy;
   resultsQueryEl.disabled = isBusy;
   resultsSearchBtn.disabled = isBusy;
   followupInputEl.disabled = isBusy;
@@ -226,16 +257,17 @@ function renderCommentModal(comment) {
   const headline = (comment.title || "").trim() || body.split(/(?<=[.!?])\s+/)[0] || "Comment";
   productModalTitleEl.textContent = headline.slice(0, 160);
   productModalPriceEl.textContent = comment.url ? `URL: ${comment.url}` : "URL: N/A";
-  productModalBrandEl.textContent = `Source: ${comment.source || "Community"}`;
   productModalRatingEl.textContent = `Comment ID: ${comment.document_id || comment.id || "N/A"}`;
   productModalDescriptionEl.textContent = body || "No comment text available.";
 }
 
 function renderExampleCard(targetEl, { compact = false } = {}) {
   if (!targetEl) return;
+  const generateButtonText = compact
+    ? "Step 2: Generate likely questions"
+    : "Step 2: Generate likely questions that this text answers";
   if (!activeExample) {
     targetEl.innerHTML = `
-      <p class="eyebrow">Grounded demo</p>
       <h2>Loading a random FIQA document…</h2>
     `;
     return;
@@ -252,19 +284,14 @@ function renderExampleCard(targetEl, { compact = false } = {}) {
 
   targetEl.innerHTML = `
     <div class="example-card-head">
-      <div>
-        <p class="eyebrow">Grounded demo</p>
-        <h2>${compact ? "Reference document" : "Start from evidence, not a blank prompt"}</h2>
-      </div>
-      <button class="example-random-btn" type="button">Random document</button>
+      <button class="example-random-btn" type="button">Step 1: Pick a random document</button>
     </div>
-    <p class="example-hint">Generate likely questions, click one, then compare the RAG answer and Sources against this document.</p>
     <article class="example-document">
       <p class="example-doc-meta">Document ID ${escapeHtml(doc.document_id || "N/A")}</p>
       <h3>${escapeHtml(doc.title || "FIQA document")}</h3>
       <p>${escapeHtml(doc.content || "")}</p>
     </article>
-    <button class="example-generate-btn" type="button">Generate likely questions that this text answers</button>
+    <button class="example-generate-btn" type="button">${generateButtonText}</button>
     <div class="example-questions${activeExample.questionsVisible ? "" : " hidden"}">
       ${questionButtons}
     </div>
@@ -295,28 +322,45 @@ function setRandomExample() {
   renderComments([]);
 }
 
-function showGuidedDemo() {
-  if (!activeExample && exampleBank.length) {
-    setRandomExample();
+function pickRandomExampleQuestion() {
+  const examplesWithQuestions = exampleBank.filter((example) => Array.isArray(example.questions) && example.questions.length > 0);
+  const nextExample = chooseRandom(examplesWithQuestions) || activeExample;
+  const questions = Array.isArray(nextExample?.questions) ? nextExample.questions : [];
+  const nextQuestion = chooseRandom(questions);
+
+  if (!nextExample || !nextQuestion?.text) {
+    return null;
   }
-  if (activeExample) {
-    activeExample.questionsVisible = true;
-  }
+
+  activeExample = nextExample;
+  activeExample.questionsVisible = true;
+  activeExampleQuestion = nextQuestion;
+  homeQueryEl.value = nextQuestion.text;
+  resultsQueryEl.value = nextQuestion.text;
   renderExampleCards();
-  homeExampleCardEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+  return nextQuestion;
+}
+
+function chooseRandomQuestionForHome() {
+  const nextQuestion = pickRandomExampleQuestion();
+  if (!nextQuestion) {
+    setRandomExample();
+    return;
+  }
+  renderComments([]);
 }
 
 async function loadExampleBank() {
   try {
-    const response = await fetch("/static/example_questions.json");
+    const response = await fetch("/static/example_questions.json?v=20260605o");
     if (!response.ok) {
       throw new Error(await readErrorMessage(response, "Example loading failed"));
     }
     exampleBank = await response.json();
-    setRandomExample();
+    chooseRandomQuestionForHome();
   } catch (error) {
     console.error("Example loading failed:", error);
-    const message = `<p class="eyebrow">Grounded demo</p><h2>Example questions unavailable</h2><p class="example-hint">${escapeHtml(error.message || String(error))}</p>`;
+    const message = `<h2>Example questions unavailable</h2><p class="example-hint">${escapeHtml(error.message || String(error))}</p>`;
     if (homeExampleCardEl) homeExampleCardEl.innerHTML = message;
     if (resultsExampleCardEl) resultsExampleCardEl.innerHTML = message;
   }
@@ -345,7 +389,6 @@ function normalizeChatSources(sources) {
       description: content,
       text: content,
       url: source.url || "",
-      source: source.source || "Community",
       knn_dist: distance,
     };
   });
@@ -358,33 +401,24 @@ function renderComments(items) {
   metaEl.textContent = visibleItems.length
     ? `${visibleItems.length} source${visibleItems.length === 1 ? "" : "s"}${activeExampleQuestion ? " · reference document is highlighted if retrieved" : ""}`
     : "";
+  const referenceSourceIndex = findActiveExampleSourceIndex(visibleItems);
 
-  for (const comment of visibleItems) {
+  for (const [index, comment] of visibleItems.entries()) {
     const node = template.content.cloneNode(true);
     const preview = String(comment.description || comment.text || "").trim();
     const headline = (comment.title || "").trim() || preview.split(/(?<=[.!?])\s+/)[0] || "Untitled comment";
     const shortPreview = preview.length > 280 ? `${preview.slice(0, 280)}...` : preview;
     const commentId = comment.document_id || comment.id || "N/A";
-    const source = (comment.source || "").trim() || "Community";
 
-    const isReferenceSource = isActiveExampleSource(comment);
+    const isReferenceSource = index === referenceSourceIndex;
 
     node.querySelector(".title").textContent = headline.slice(0, 160);
-    node.querySelector(".rating").textContent = isReferenceSource ? `${source} · reference document` : source;
+    const ratingEl = node.querySelector(".rating");
+    ratingEl.textContent = isReferenceSource ? "Reference document" : "";
+    ratingEl.hidden = !isReferenceSource;
     node.querySelector(".bought").textContent = `Comment ID ${commentId}`;
-    node.querySelector(".id").textContent = comment.knn_dist == null ? `ID: ${comment.id || "N/A"}` : `KNN distance: ${Number(comment.knn_dist).toFixed(4)}`;
-    node.querySelector(".brand").textContent = `Source: ${source}`;
     node.querySelector(".color").textContent = `Comment: ${commentId}`;
     node.querySelector(".delivery").textContent = comment.url || "";
-    node.querySelector(".product-locale").textContent = `Comment ID: ${commentId}`;
-    node.querySelector(".example-id").textContent = `Row ID: ${comment.id || "N/A"}`;
-    node.querySelector(".query-id").textContent = `Source: ${source}`;
-    node.querySelector(".query").textContent = `URL: ${comment.url || "N/A"}`;
-    node.querySelector(".esci-label").textContent = "Collection: FIQA";
-    node.querySelector(".small-version").textContent = "";
-    node.querySelector(".large-version").textContent = "";
-    node.querySelector(".split").textContent = "";
-    node.querySelector(".source").textContent = `Text length: ${(comment.description || "").length}`;
     node.querySelector(".description").textContent = shortPreview || "No text";
 
     const cardEl = node.querySelector(".card");
@@ -395,11 +429,6 @@ function renderComments(items) {
     cardEl.addEventListener("click", () => {
       renderCommentModal(comment);
       setProductModalOpen(true);
-    });
-
-    const detailsEl = node.querySelector(".dataset-details");
-    detailsEl.addEventListener("click", (event) => {
-      event.stopPropagation();
     });
 
     gridEl.appendChild(node);
@@ -587,7 +616,7 @@ homeFormEl.addEventListener("submit", (event) => {
   renderExampleCards();
   askAi({ resetConversation: true });
 });
-homeGuidedDemoBtn.addEventListener("click", showGuidedDemo);
+homeRandomQuestionBtn.addEventListener("click", chooseRandomQuestionForHome);
 resultsTopFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
   activeExampleQuestion = null;
