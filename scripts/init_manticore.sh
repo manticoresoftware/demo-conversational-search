@@ -4,10 +4,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-TABLE_DUMP="${TABLE_DUMP:-dumps/fiqa_docs_with_embeddings.sql.tar.gz.part-*}"
-TABLE_DUMP_MEMBER="${TABLE_DUMP_MEMBER:-fiqa_docs_with_embeddings.sql}"
+TABLE_DUMP="${TABLE_DUMP:-dumps/convapparel_products_with_embeddings.sql.xz.part-*}"
+TABLE_DUMP_MEMBER="${TABLE_DUMP_MEMBER:-}"
 CHAT_MODEL_SQL="${CHAT_MODEL_SQL:-dumps/create_chat_model.sql}"
 SERVICE_NAME="${MANTICORE_SERVICE:-manticore}"
+TABLE_NAME="${TABLE_NAME:-convapparel_products}"
 
 if [[ ! -f "$CHAT_MODEL_SQL" ]]; then
   echo "Missing chat model SQL: $CHAT_MODEL_SQL" >&2
@@ -35,17 +36,26 @@ until docker exec "$container_id" sh -c 'exec mysql -e "SELECT 1"' >/dev/null 2>
   sleep 1
 done
 
-echo "Dropping existing FIQA table and chat model if present..."
-docker exec "$container_id" sh -c 'exec mysql -e "DROP TABLE IF EXISTS fiqa_docs"' >/dev/null
+echo "Dropping existing $TABLE_NAME table and chat model if present..."
+docker exec "$container_id" sh -c "exec mysql -e \"DROP TABLE IF EXISTS $TABLE_NAME\"" >/dev/null
 docker exec "$container_id" sh -c 'exec mysql -e "DROP CHAT MODEL IF EXISTS assistant"' >/dev/null 2>&1 || true
 
 echo "Restoring $TABLE_DUMP..."
 case "${table_dump_parts[0]}" in
+  *.sql.xz.part-*)
+    cat "${table_dump_parts[@]}" | xz -cd | docker exec -i "$container_id" sh -c 'exec mysql'
+    ;;
+  *.sql.gz.part-*)
+    cat "${table_dump_parts[@]}" | gzip -cd | docker exec -i "$container_id" sh -c 'exec mysql'
+    ;;
   *.part-*)
     cat "${table_dump_parts[@]}" | tar -xOzf - "$TABLE_DUMP_MEMBER" | docker exec -i "$container_id" sh -c 'exec mysql'
     ;;
   *.tar.gz|*.tgz)
     tar -xOzf "${table_dump_parts[0]}" "$TABLE_DUMP_MEMBER" | docker exec -i "$container_id" sh -c 'exec mysql'
+    ;;
+  *.gz)
+    gzip -cd "${table_dump_parts[0]}" | docker exec -i "$container_id" sh -c 'exec mysql'
     ;;
   *)
     docker exec -i "$container_id" sh -c 'exec mysql' < "${table_dump_parts[0]}"

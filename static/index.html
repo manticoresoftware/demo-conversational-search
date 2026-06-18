@@ -3,24 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Manticore Chat Demo</title>
+    <title>Manticore Apparel Shop</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon.svg" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260605p" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260618ecom2" />
   </head>
   <body>
     <main id="home-screen" class="home-screen">
-      <div class="home-brand" aria-label="Manticore Chat Demo">
+      <div class="home-brand" aria-label="Manticore Apparel Shop">
         <img class="home-brand-logo" src="/static/manticore-logo-mark.png" alt="Manticore Search" />
-        <h1 class="home-title">Manticore Chat Demo</h1>
+        <h1 class="home-title">Manticore Apparel Shop</h1>
       </div>
-      <form id="home-form" class="home-search" aria-label="Ask Manticore Chat demo">
+      <p class="home-subtitle">Conversational product search over 82k ConvApparel items.</p>
+      <form id="home-form" class="home-search" aria-label="Search Manticore Apparel Shop">
         <div class="home-search-box">
-          <button id="home-random-question-btn" class="home-random-question-btn" type="button" aria-label="Choose another random question" title="Choose another random question">↻</button>
-          <input id="home-query" type="text" placeholder="Ask about finance comments..." autofocus />
-          <button id="home-search-btn" type="submit">Ask AI</button>
+          <button id="home-random-question-btn" class="home-random-question-btn" type="button" aria-label="Try another shopping request" title="Try another shopping request">↻</button>
+          <input id="home-query" type="text" placeholder="Search for waterproof running shoes, winter jackets, linen shirts..." autofocus />
+          <button id="home-search-btn" type="submit">Shop</button>
         </div>
-        <p class="home-guided-hint">Start from a real document and pick a generated question whose answer is in that text.</p>
+        <p class="home-guided-hint">Try a real first-message shopping request from the dataset, then inspect matching product cards and sources.</p>
       </form>
 
       <section id="home-example-card" class="example-card home-example-card" aria-label="Example question picker"></section>
@@ -29,11 +30,12 @@
     <main id="results-screen" class="container hidden" hidden>
       <header class="results-header">
         <div class="results-header-inner">
-          <a class="results-brand" href="/" aria-label="Manticore Chat Demo home">
+          <a class="results-brand" href="/" aria-label="Manticore Apparel Shop home">
             <img class="results-brand-logo" src="/static/manticore-logo-mark.png" alt="Manticore Search" />
+            <span>Manticore Apparel Shop</span>
           </a>
-          <form id="results-top-form" class="standard-search results-top-search" aria-label="Ask Manticore Chat demo from results">
-            <input id="results-query" type="text" placeholder="Ask about finance comments..." />
+          <form id="results-top-form" class="standard-search results-top-search" aria-label="Search apparel products from results">
+            <input id="results-query" type="text" placeholder="Search apparel products..." />
             <button id="results-search-btn" type="submit">Search</button>
           </form>
         </div>
@@ -48,7 +50,7 @@
           <section id="ai-overview" class="ai-overview" aria-live="polite">
             <div id="ai-history" class="ai-history"></div>
             <div id="ai-answer" class="ai-answer hidden" hidden>
-              <p>Ask a finance question to generate an answer from FIQA comments. Sources will appear below.</p>
+              <p>Ask for shoes, jackets, tops, or bottoms. Matching ConvApparel product sources will appear below.</p>
             </div>
           </section>
 
@@ -58,7 +60,7 @@
           </form>
 
           <section id="source-results" class="source-results hidden" hidden>
-            <h2>Sources</h2>
+            <h2>Products</h2>
             <p id="meta"></p>
             <div id="grid" class="grid"></div>
             <div class="pagination" hidden>
@@ -73,13 +75,16 @@
     </main>
 
     <div id="product-modal" class="product-modal hidden" hidden>
-      <button id="product-modal-backdrop" class="product-modal-backdrop" type="button" aria-label="Close comment details"></button>
+      <button id="product-modal-backdrop" class="product-modal-backdrop" type="button" aria-label="Close product details"></button>
       <section class="product-modal-card">
         <div class="product-modal-head">
-          <h2 id="product-modal-title">Comment</h2>
+          <h2 id="product-modal-title">Product</h2>
           <button id="product-modal-close-btn" class="product-modal-close-btn" type="button" aria-label="Close">×</button>
         </div>
         <div class="product-page">
+          <div class="product-page-media">
+            <img id="product-modal-image" class="product-page-image" alt="" />
+          </div>
           <div class="product-page-main">
             <p id="product-modal-rating" class="product-page-rating"></p>
             <p id="product-modal-price" class="product-page-price"></p>
@@ -91,8 +96,14 @@
 
     <template id="card-template">
       <article class="card feed-card">
+        <div class="card-media">
+          <img class="product-image" alt="" />
+          <div class="image-fallback">No image</div>
+        </div>
         <div class="card-body">
+          <p class="category-pill"></p>
           <h3 class="title"></h3>
+          <p class="price"></p>
           <p class="rating"></p>
           <p class="bought"></p>
           <p class="delivery"></p>
@@ -104,6 +115,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=20260605p"></script>
+    <script src="/static/app.js?v=20260618ecom2"></script>
   </body>
 </html>

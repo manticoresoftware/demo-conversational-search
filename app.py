@@ -15,13 +15,13 @@ from conversational_search import create_chat_handler
 
 BASE_DIR = Path(__file__).parent
 MANTICORE_HTTP = "http://manticore:9308"
-DEFAULT_TABLE = "fiqa_docs"
+DEFAULT_TABLE = "convapparel_products"
 CHAT_DEFAULT_MODEL = "assistant"
 VECTOR_FIELDS = "embedding_vector"
 SUPPORTED_SORTS = {"relevance", "title"}
 INIT_MESSAGE = "Manticore is not initialized. Run ./scripts/init_manticore.sh, then reload the app."
 
-app = FastAPI(title="FIQA Comments Conversational Search", version="0.1.0")
+app = FastAPI(title="ConvApparel Conversational Product Search", version="0.1.0")
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 

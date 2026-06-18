@@ -22,6 +22,7 @@ const productModalEl = document.getElementById("product-modal");
 const productModalBackdropBtn = document.getElementById("product-modal-backdrop");
 const productModalCloseBtn = document.getElementById("product-modal-close-btn");
 const productModalTitleEl = document.getElementById("product-modal-title");
+const productModalImageEl = document.getElementById("product-modal-image");
 const productModalPriceEl = document.getElementById("product-modal-price");
 const productModalRatingEl = document.getElementById("product-modal-rating");
 const productModalDescriptionEl = document.getElementById("product-modal-description");
@@ -51,6 +52,29 @@ function chooseRandom(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+function stableNumber(value, min, max) {
+  const text = String(value || "product");
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  }
+  return min + (hash % (max - min + 1));
+}
+
+function productPrice(product) {
+  return `$${stableNumber(product?.item_id || product?.document_id || product?.id || product?.title, 24, 189)}.99`;
+}
+
+function productRating(product) {
+  const tenths = stableNumber(product?.item_id || product?.document_id || product?.id || product?.title, 38, 49);
+  const reviews = stableNumber(`${product?.item_id || product?.document_id || product?.title}-reviews`, 84, 2400);
+  return `★ ${(tenths / 10).toFixed(1)} · ${reviews.toLocaleString()} reviews`;
+}
+
+function productImageUrl(product) {
+  return product?.image_url || product?.url || "";
+}
+
 function sameDocumentId(left, right) {
   const a = String(left || "").trim();
   const b = String(right || "").trim();
@@ -58,7 +82,7 @@ function sameDocumentId(left, right) {
 }
 
 function isExactActiveExampleSource(comment) {
-  return sameDocumentId(comment?.document_id || comment?.id, activeExample?.document?.document_id);
+  return sameDocumentId(comment?.item_id || comment?.document_id || comment?.id, activeExample?.document?.document_id);
 }
 
 function isTextActiveExampleSource(comment) {
@@ -110,7 +134,7 @@ function sqlQuote(value) {
 function buildChatSql(message) {
   return `CALL CHAT(${[
     sqlQuote(message),
-    sqlQuote("fiqa_docs"),
+    sqlQuote("convapparel_products"),
     sqlQuote("assistant"),
     sqlQuote(chatConversationUuid || ""),
     sqlQuote("embedding_vector"),
@@ -247,28 +271,32 @@ function setBusy(isBusy) {
   resultsSearchBtn.disabled = isBusy;
   followupInputEl.disabled = isBusy;
   followupSendBtn.disabled = isBusy;
-  homeSearchBtn.textContent = isBusy ? "Searching..." : "Ask AI";
+  homeSearchBtn.textContent = isBusy ? "Searching..." : "Shop";
   resultsSearchBtn.textContent = isBusy ? "Searching..." : "Search";
   followupSendBtn.textContent = isBusy ? "…" : "↑";
 }
 
 function renderCommentModal(comment) {
   const body = String(comment.description || comment.text || "").trim();
-  const headline = (comment.title || "").trim() || body.split(/(?<=[.!?])\s+/)[0] || "Comment";
+  const headline = (comment.title || "").trim() || body.split(/(?<=[.!?])\s+/)[0] || "Product";
+  const imageUrl = productImageUrl(comment);
   productModalTitleEl.textContent = headline.slice(0, 160);
-  productModalPriceEl.textContent = comment.url ? `URL: ${comment.url}` : "URL: N/A";
-  productModalRatingEl.textContent = `Comment ID: ${comment.document_id || comment.id || "N/A"}`;
-  productModalDescriptionEl.textContent = body || "No comment text available.";
+  productModalImageEl.src = imageUrl;
+  productModalImageEl.alt = headline;
+  productModalImageEl.hidden = !imageUrl;
+  productModalPriceEl.textContent = productPrice(comment);
+  productModalRatingEl.textContent = `${productRating(comment)} · Product ID: ${comment.item_id || comment.document_id || comment.id || "N/A"}`;
+  productModalDescriptionEl.textContent = body || "No product description available.";
 }
 
 function renderExampleCard(targetEl, { compact = false } = {}) {
   if (!targetEl) return;
   const generateButtonText = compact
-    ? "Step 2: Generate likely questions"
-    : "Step 2: Generate likely questions that this text answers";
+    ? "Step 2: Show shopping questions"
+    : "Step 2: Show shopping questions that should retrieve this product";
   if (!activeExample) {
     targetEl.innerHTML = `
-      <h2>Loading a random FIQA document…</h2>
+      <h2>Loading a random ConvApparel product…</h2>
     `;
     return;
   }
@@ -284,12 +312,15 @@ function renderExampleCard(targetEl, { compact = false } = {}) {
 
   targetEl.innerHTML = `
     <div class="example-card-head">
-      <button class="example-random-btn" type="button">Step 1: Pick a random document</button>
+      <button class="example-random-btn" type="button">Step 1: Pick a random product</button>
     </div>
     <article class="example-document">
-      <p class="example-doc-meta">Document ID ${escapeHtml(doc.document_id || "N/A")}</p>
-      <h3>${escapeHtml(doc.title || "FIQA document")}</h3>
-      <p>${escapeHtml(doc.content || "")}</p>
+      ${doc.image_url ? `<img class="example-product-image" src="${escapeHtml(doc.image_url)}" alt="${escapeHtml(doc.title || "ConvApparel product")}" />` : ""}
+      <div class="example-product-copy">
+        <p class="example-doc-meta">Product ID ${escapeHtml(doc.document_id || "N/A")}${doc.category ? ` · ${escapeHtml(doc.category)}` : ""}</p>
+        <h3>${escapeHtml(doc.title || "ConvApparel product")}</h3>
+        <p>${escapeHtml(doc.content || "")}</p>
+      </div>
     </article>
     <button class="example-generate-btn" type="button">${generateButtonText}</button>
     <div class="example-questions${activeExample.questionsVisible ? "" : " hidden"}">
@@ -352,7 +383,7 @@ function chooseRandomQuestionForHome() {
 
 async function loadExampleBank() {
   try {
-    const response = await fetch("/static/example_questions.json?v=20260605p");
+    const response = await fetch("/static/example_questions.json?v=20260618ecom");
     if (!response.ok) {
       throw new Error(await readErrorMessage(response, "Example loading failed"));
     }
@@ -384,11 +415,15 @@ function normalizeChatSources(sources) {
     const distance = source.knn_dist ?? source["@knn_dist"];
     return {
       id: source.id || index + 1,
-      document_id: source.document_id || source.id || `chat-source-${index + 1}`,
-      title: title || content.split(/(?<=[.!?])\s+/)[0] || "Retrieved comment",
+      item_id: source.item_id || source.document_id || "",
+      document_id: source.item_id || source.document_id || source.id || `chat-source-${index + 1}`,
+      title: title || content.split(/(?<=[.!?])\s+/)[0] || "Retrieved product",
       description: content,
       text: content,
-      url: source.url || "",
+      url: source.image_url || source.url || "",
+      image_url: source.image_url || "",
+      features: source.features || "",
+      category: source.category || "",
       knn_dist: distance,
     };
   });
@@ -399,27 +434,42 @@ function renderComments(items) {
   const visibleItems = Array.isArray(items) ? items : [];
   setSourcesVisible(visibleItems.length > 0);
   metaEl.textContent = visibleItems.length
-    ? `${visibleItems.length} source${visibleItems.length === 1 ? "" : "s"}${activeExample?.document ? " · reference document is highlighted if retrieved" : ""}`
+    ? `${visibleItems.length} source${visibleItems.length === 1 ? "" : "s"}${activeExample?.document ? " · reference product is highlighted if retrieved" : ""}`
     : "";
   const referenceSourceIndex = findActiveExampleSourceIndex(visibleItems);
 
   for (const [index, comment] of visibleItems.entries()) {
     const node = template.content.cloneNode(true);
     const preview = String(comment.description || comment.text || "").trim();
-    const headline = (comment.title || "").trim() || preview.split(/(?<=[.!?])\s+/)[0] || "Untitled comment";
+    const headline = (comment.title || "").trim() || preview.split(/(?<=[.!?])\s+/)[0] || "Untitled product";
     const shortPreview = preview.length > 280 ? `${preview.slice(0, 280)}...` : preview;
-    const commentId = comment.document_id || comment.id || "N/A";
+    const commentId = comment.item_id || comment.document_id || comment.id || "N/A";
+    const imageUrl = productImageUrl(comment);
 
     const isReferenceSource = index === referenceSourceIndex;
 
+    const imageEl = node.querySelector(".product-image");
+    const fallbackEl = node.querySelector(".image-fallback");
+    if (imageUrl) {
+      imageEl.src = imageUrl;
+      imageEl.alt = headline;
+      imageEl.hidden = false;
+      fallbackEl.hidden = true;
+    } else {
+      imageEl.hidden = true;
+      fallbackEl.hidden = false;
+    }
+
+    node.querySelector(".category-pill").textContent = comment.category || "apparel";
     node.querySelector(".title").textContent = headline.slice(0, 160);
+    node.querySelector(".price").textContent = productPrice(comment);
     const ratingEl = node.querySelector(".rating");
-    ratingEl.textContent = isReferenceSource ? "Reference document" : "";
-    ratingEl.hidden = !isReferenceSource;
-    node.querySelector(".bought").textContent = `Comment ID ${commentId}`;
-    node.querySelector(".color").textContent = `Comment: ${commentId}`;
-    node.querySelector(".delivery").textContent = comment.url || "";
-    node.querySelector(".description").textContent = shortPreview || "No text";
+    ratingEl.textContent = isReferenceSource ? `Reference product · ${productRating(comment)}` : productRating(comment);
+    ratingEl.hidden = false;
+    node.querySelector(".bought").textContent = `Product ID ${commentId}`;
+    node.querySelector(".color").textContent = comment.category || `Product: ${commentId}`;
+    node.querySelector(".delivery").textContent = comment.features || comment.url || "";
+    node.querySelector(".description").textContent = shortPreview || "No product description";
 
     const cardEl = node.querySelector(".card");
     cardEl.classList.add("clickable");

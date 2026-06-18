@@ -1,0 +1,11 @@
+.git
+.idea
+.env
+.venv
+__pycache__
+.pycache_tmp
+.pycache_local
+*.pyc
+data/raw
+dumps/convapparel_products.sql.gz
+dumps/convapparel_products_with_embeddings.sql.*.part-*
