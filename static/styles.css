@@ -87,6 +87,24 @@ body {
   text-align: center;
 }
 
+.home-article-link {
+  margin: -0.85rem 0 1.35rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.home-article-link a {
+  color: var(--link);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-article-link a:hover {
+  text-decoration: underline;
+}
+
 .home-search {
   width: min(760px, 100%);
   display: grid;
