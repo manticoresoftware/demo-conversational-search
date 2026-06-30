@@ -73,6 +73,7 @@ The key is passed into the `manticore` service and used when creating the Mantic
 
 - `POST /api/assistant/chat`
   - Body: `message`, optional `conversation_uuid`
+  - Response includes Manticore `response_with_refs` when available, plus `sources`; the UI renders inline reference markers with hover previews and opens the matching product modal on click.
 
 Example:
 

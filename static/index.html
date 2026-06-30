@@ -3,25 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Manticore Apparel Shop</title>
+    <title>Manticore Shop Demo</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon.svg" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260618ecom2" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260626refmodal1" />
   </head>
   <body>
     <main id="home-screen" class="home-screen">
-      <div class="home-brand" aria-label="Manticore Apparel Shop">
+      <div class="home-brand" aria-label="Manticore Shop Demo">
         <img class="home-brand-logo" src="/static/manticore-logo-mark.png" alt="Manticore Search" />
-        <h1 class="home-title">Manticore Apparel Shop</h1>
+        <h1 class="home-title">Manticore Shop Demo</h1>
       </div>
-      <p class="home-subtitle">Conversational product search over 82k ConvApparel items.</p>
-      <form id="home-form" class="home-search" aria-label="Search Manticore Apparel Shop">
+      <p class="home-subtitle">Conversational product search demo over 82k ConvApparel items — real apparel recommendations from shopper-assistant dialogs.</p>
+      <form id="home-form" class="home-search" aria-label="Search Manticore Shop Demo">
         <div class="home-search-box">
           <button id="home-random-question-btn" class="home-random-question-btn" type="button" aria-label="Try another shopping request" title="Try another shopping request">↻</button>
-          <input id="home-query" type="text" placeholder="Search for waterproof running shoes, winter jackets, linen shirts..." autofocus />
-          <button id="home-search-btn" type="submit">Shop</button>
+          <textarea id="home-query" rows="2" placeholder="Ask for waterproof running shoes, winter jackets, linen shirts..." autofocus></textarea>
+          <button id="home-search-btn" type="submit">Ask AI</button>
         </div>
-        <p class="home-guided-hint">Try a real first-message shopping request from the dataset, then inspect matching product cards and sources.</p>
+        <p class="home-guided-hint">Try a realistic shopper request from the dataset, then inspect matching product cards and sources.</p>
       </form>
 
       <section id="home-example-card" class="example-card home-example-card" aria-label="Example question picker"></section>
@@ -30,12 +30,12 @@
     <main id="results-screen" class="container hidden" hidden>
       <header class="results-header">
         <div class="results-header-inner">
-          <a class="results-brand" href="/" aria-label="Manticore Apparel Shop home">
+          <a class="results-brand" href="/" aria-label="Manticore Shop Demo home">
             <img class="results-brand-logo" src="/static/manticore-logo-mark.png" alt="Manticore Search" />
-            <span>Manticore Apparel Shop</span>
+            <span>Manticore Shop Demo</span>
           </a>
           <form id="results-top-form" class="standard-search results-top-search" aria-label="Search apparel products from results">
-            <input id="results-query" type="text" placeholder="Search apparel products..." />
+            <textarea id="results-query" rows="2" placeholder="Ask AI for apparel products..."></textarea>
             <button id="results-search-btn" type="submit">Search</button>
           </form>
         </div>
@@ -115,6 +115,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=20260618ecom2"></script>
+    <script src="/static/app.js?v=20260626refmodal1"></script>
   </body>
 </html>

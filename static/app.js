@@ -34,6 +34,9 @@ let aiConversation = [];
 let exampleBank = [];
 let activeExample = null;
 let activeExampleQuestion = null;
+let currentVisibleSources = [];
+let referencePreviewEl = null;
+let referencePreviewHideTimer = null;
 
 function showError(message) {
   errorBannerEl.textContent = message;
@@ -155,7 +158,7 @@ function renderAiConversation({ loadingQuestion = "", transientTurn = null } = {
 
     const answer = document.createElement("div");
     answer.className = "ai-answer";
-    answer.innerHTML = markdownToHtml(turn.answer || "No AI answer was returned.");
+    answer.innerHTML = answerToHtml(turn.answer || "No AI answer was returned.", turn.sources || []);
     article.appendChild(answer);
 
     aiHistoryEl.appendChild(article);
@@ -193,7 +196,7 @@ function renderAiConversation({ loadingQuestion = "", transientTurn = null } = {
 
     const answer = document.createElement("div");
     answer.className = "ai-answer";
-    answer.innerHTML = markdownToHtml(transientTurn.answer || "No AI answer was returned.");
+    answer.innerHTML = answerToHtml(transientTurn.answer || "No AI answer was returned.", transientTurn.sources || []);
     article.appendChild(answer);
 
     aiHistoryEl.appendChild(article);
@@ -209,7 +212,7 @@ function clearAiConversation() {
   setFollowupVisible(false);
 }
 
-function setAiOverview(text, { loading = false, question = "", transient = false } = {}) {
+function setAiOverview(text, { loading = false, question = "", transient = false, sources = [] } = {}) {
   aiOverviewEl.classList.toggle("loading", loading);
   if (loading) {
     renderAiConversation({ loadingQuestion: question });
@@ -224,6 +227,7 @@ function setAiOverview(text, { loading = false, question = "", transient = false
         transientTurn: {
           question,
           answer: cleanText || "No AI answer was returned.",
+          sources,
         },
       });
       setFollowupVisible(aiConversation.length > 0);
@@ -232,6 +236,7 @@ function setAiOverview(text, { loading = false, question = "", transient = false
     aiConversation.push({
       question,
       answer: cleanText || "No AI answer was returned.",
+      sources,
     });
   }
   renderAiConversation();
@@ -271,9 +276,20 @@ function setBusy(isBusy) {
   resultsSearchBtn.disabled = isBusy;
   followupInputEl.disabled = isBusy;
   followupSendBtn.disabled = isBusy;
-  homeSearchBtn.textContent = isBusy ? "Searching..." : "Shop";
+  homeSearchBtn.textContent = isBusy ? "Searching..." : "Ask AI";
   resultsSearchBtn.textContent = isBusy ? "Searching..." : "Search";
   followupSendBtn.textContent = isBusy ? "…" : "↑";
+}
+
+function resizeTextarea(textarea, maxHeight = 160) {
+  if (!textarea) return;
+  textarea.style.height = "auto";
+  textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+}
+
+function resizeQueryTextareas() {
+  resizeTextarea(homeQueryEl, 180);
+  resizeTextarea(resultsQueryEl, 150);
 }
 
 function renderCommentModal(comment) {
@@ -368,6 +384,7 @@ function pickRandomExampleQuestion() {
   activeExampleQuestion = nextQuestion;
   homeQueryEl.value = nextQuestion.text;
   resultsQueryEl.value = nextQuestion.text;
+  resizeQueryTextareas();
   renderExampleCards();
   return nextQuestion;
 }
@@ -413,10 +430,12 @@ function normalizeChatSources(sources) {
     const content = String(source.content || source.text || source.description || "").trim();
     const title = String(source.title || "").trim();
     const distance = source.knn_dist ?? source["@knn_dist"];
+    const sourceId = String(source.id || index + 1).trim();
+    const itemId = String(source.item_id || source.document_id || "").trim();
     return {
-      id: source.id || index + 1,
-      item_id: source.item_id || source.document_id || "",
-      document_id: source.item_id || source.document_id || source.id || `chat-source-${index + 1}`,
+      id: sourceId,
+      item_id: itemId,
+      document_id: itemId || sourceId || `chat-source-${index + 1}`,
       title: title || content.split(/(?<=[.!?])\s+/)[0] || "Retrieved product",
       description: content,
       text: content,
@@ -432,6 +451,7 @@ function normalizeChatSources(sources) {
 function renderComments(items) {
   gridEl.innerHTML = "";
   const visibleItems = Array.isArray(items) ? items : [];
+  currentVisibleSources = visibleItems;
   setSourcesVisible(visibleItems.length > 0);
   metaEl.textContent = visibleItems.length
     ? `${visibleItems.length} source${visibleItems.length === 1 ? "" : "s"}${activeExample?.document ? " · reference product is highlighted if retrieved" : ""}`
@@ -473,6 +493,7 @@ function renderComments(items) {
 
     const cardEl = node.querySelector(".card");
     cardEl.classList.add("clickable");
+    cardEl.dataset.sourceIndex = String(index + 1);
     if (isReferenceSource) {
       cardEl.classList.add("reference-source-card");
     }
@@ -513,6 +534,7 @@ async function askAi({ message = "", resetConversation = false } = {}) {
 
   homeQueryEl.value = text;
   resultsQueryEl.value = text;
+  resizeQueryTextareas();
   clearError();
   setResultsVisible(true);
   setAiVisible(true);
@@ -526,12 +548,14 @@ async function askAi({ message = "", resetConversation = false } = {}) {
     const searchQuery = String(payload.search_query || "").trim();
     if (searchQuery) {
       resultsQueryEl.value = searchQuery;
+      resizeTextarea(resultsQueryEl, 150);
     }
-    setAiOverview((payload.response || "").trim() || "No AI answer was returned.", { question: text });
-
     const chatItems = Array.isArray(payload.items) ? payload.items : [];
     const chatSources = normalizeChatSources(payload.sources);
-    renderComments(chatItems.length ? chatItems : chatSources);
+    const visibleSources = chatItems.length ? chatItems : chatSources;
+    const answer = String(payload.response_with_refs || payload.response || "").trim() || "No AI answer was returned.";
+    setAiOverview(answer, { question: text, sources: visibleSources });
+    renderComments(visibleSources);
     return payload;
   } catch (error) {
     console.error("CALL CHAT failed:", error);
@@ -646,6 +670,180 @@ function markdownToHtml(markdown) {
   return rendered;
 }
 
+function sourceReferenceKeys(source) {
+  return [source?.id, source?.item_id, source?.document_id]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+}
+
+function sameReferenceKey(left, right) {
+  if (!left || !right) return false;
+  if (left === right) return true;
+  const numericLeft = /^\d{16,}$/.test(left);
+  const numericRight = /^\d{16,}$/.test(right);
+  if (!numericLeft || !numericRight) return false;
+  return left.slice(0, 15) === right.slice(0, 15);
+}
+
+function findSourceReferenceIndex(rawReference, sources, { preferId = false } = {}) {
+  const reference = String(rawReference || "").trim();
+  if (!reference || !Array.isArray(sources) || sources.length === 0) return -1;
+
+  const idIndex = sources.findIndex((source) => sourceReferenceKeys(source).some((key) => sameReferenceKey(key, reference)));
+  if (idIndex >= 0) return idIndex;
+
+  const ordinal = Number(reference);
+  if (!preferId && Number.isInteger(ordinal) && ordinal >= 1 && ordinal <= sources.length) {
+    return ordinal - 1;
+  }
+
+  return -1;
+}
+
+function answerToHtml(answer, sources = []) {
+  let html = markdownToHtml(answer);
+  if (!Array.isArray(sources) || sources.length === 0) return html;
+
+  html = html.replace(/\bID:\s*(\d{8,})/g, (match, rawId) => {
+    const sourceIndex = findSourceReferenceIndex(rawId, sources, { preferId: true });
+    if (sourceIndex < 0) return match;
+
+    const displayIndex = sourceIndex + 1;
+    return `ID: <button class="answer-ref answer-id" type="button" data-ref-index="${displayIndex}" aria-label="Show reference ${displayIndex}">${rawId}</button>`;
+  });
+
+  return html.replace(/\[ref:([^\]\s]+)\]|\[(\d+)\]/g, (match, rawRefId, rawIndex) => {
+    const isExplicitRef = Boolean(rawRefId);
+    const rawReference = rawRefId || rawIndex;
+    const sourceIndex = findSourceReferenceIndex(rawReference, sources, { preferId: isExplicitRef });
+    if (sourceIndex < 0) return match;
+
+    const displayIndex = sourceIndex + 1;
+    return `<button class="answer-ref" type="button" data-ref-index="${displayIndex}" aria-label="Show reference ${displayIndex}">[${displayIndex}]</button>`;
+  });
+}
+
+function ensureReferencePreview() {
+  if (referencePreviewEl) return referencePreviewEl;
+  referencePreviewEl = document.createElement("aside");
+  referencePreviewEl.className = "reference-preview hidden";
+  referencePreviewEl.hidden = true;
+  referencePreviewEl.setAttribute("aria-hidden", "true");
+  document.body.appendChild(referencePreviewEl);
+  referencePreviewEl.addEventListener("mouseenter", () => {
+    if (referencePreviewHideTimer) {
+      window.clearTimeout(referencePreviewHideTimer);
+      referencePreviewHideTimer = null;
+    }
+  });
+  referencePreviewEl.addEventListener("mouseleave", hideReferencePreview);
+  return referencePreviewEl;
+}
+
+function renderReferencePreview(item, index) {
+  const preview = ensureReferencePreview();
+  const imageUrl = productImageUrl(item);
+  const body = String(item?.description || item?.text || item?.content || "").trim();
+  const title = String(item?.title || "").trim() || body.split(/(?<=[.!?])\s+/)[0] || `Reference ${index}`;
+  const description = body.length > 150 ? `${body.slice(0, 150)}...` : body;
+
+  preview.innerHTML = "";
+
+  const media = document.createElement("div");
+  media.className = "reference-preview-media";
+  if (imageUrl) {
+    const image = document.createElement("img");
+    image.src = imageUrl;
+    image.alt = title;
+    media.appendChild(image);
+  } else {
+    media.textContent = "No image";
+  }
+
+  const copy = document.createElement("div");
+  copy.className = "reference-preview-copy";
+
+  const eyebrow = document.createElement("p");
+  eyebrow.className = "reference-preview-eyebrow";
+  eyebrow.textContent = `Reference ${index}${item?.category ? ` · ${item.category}` : ""}`;
+
+  const heading = document.createElement("h3");
+  heading.textContent = title.slice(0, 120);
+
+  const price = document.createElement("p");
+  price.className = "reference-preview-price";
+  price.textContent = `${productPrice(item)} · ${productRating(item)}`;
+
+  const text = document.createElement("p");
+  text.className = "reference-preview-text";
+  text.textContent = description || "No product description available.";
+
+  copy.append(eyebrow, heading, price, text);
+  preview.append(media, copy);
+  return preview;
+}
+
+function positionReferencePreview(preview, target) {
+  const rect = target.getBoundingClientRect();
+  preview.classList.remove("hidden");
+  preview.hidden = false;
+  preview.style.left = "0px";
+  preview.style.top = "0px";
+
+  const previewRect = preview.getBoundingClientRect();
+  const gap = 10;
+  const margin = 12;
+  let left = rect.left + rect.width / 2 - previewRect.width / 2;
+  left = Math.max(margin, Math.min(left, window.innerWidth - previewRect.width - margin));
+  let top = rect.bottom + gap;
+  if (top + previewRect.height + margin > window.innerHeight) {
+    top = rect.top - previewRect.height - gap;
+  }
+  top = Math.max(margin, top);
+  preview.style.left = `${left}px`;
+  preview.style.top = `${top}px`;
+}
+
+function showReferencePreview(target, index) {
+  const item = currentVisibleSources[index - 1];
+  if (!target || !item) return;
+  if (referencePreviewHideTimer) {
+    window.clearTimeout(referencePreviewHideTimer);
+    referencePreviewHideTimer = null;
+  }
+  const preview = renderReferencePreview(item, index);
+  positionReferencePreview(preview, target);
+  preview.setAttribute("aria-hidden", "false");
+}
+
+function hideReferencePreview({ delay = 120 } = {}) {
+  if (!referencePreviewEl) return;
+  if (referencePreviewHideTimer) {
+    window.clearTimeout(referencePreviewHideTimer);
+  }
+  referencePreviewHideTimer = window.setTimeout(() => {
+    referencePreviewEl.classList.add("hidden");
+    referencePreviewEl.hidden = true;
+    referencePreviewEl.setAttribute("aria-hidden", "true");
+  }, delay);
+}
+
+function focusSourceReference(index) {
+  const card = gridEl.querySelector(`[data-source-index="${index}"]`);
+  if (!card) return;
+  card.classList.add("source-ref-flash");
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  window.setTimeout(() => card.classList.remove("source-ref-flash"), 1400);
+}
+
+function openSourceReference(index) {
+  const item = currentVisibleSources[index - 1];
+  if (!item) return;
+  hideReferencePreview({ delay: 0 });
+  renderCommentModal(item);
+  setProductModalOpen(true);
+}
+
 async function submitFollowup(inputEl) {
   const text = inputEl.value.trim();
   if (!text) return;
@@ -656,8 +854,14 @@ async function submitFollowup(inputEl) {
 }
 
 function resizeFollowup() {
-  followupInputEl.style.height = "auto";
-  followupInputEl.style.height = `${Math.min(followupInputEl.scrollHeight, 160)}px`;
+  resizeTextarea(followupInputEl, 160);
+}
+
+function submitOnEnter(event, callback) {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    callback();
+  }
 }
 
 homeFormEl.addEventListener("submit", (event) => {
@@ -667,22 +871,44 @@ homeFormEl.addEventListener("submit", (event) => {
   askAi({ resetConversation: true });
 });
 homeRandomQuestionBtn.addEventListener("click", chooseRandomQuestionForHome);
+homeQueryEl.addEventListener("input", () => resizeTextarea(homeQueryEl, 180));
+homeQueryEl.addEventListener("keydown", (event) => submitOnEnter(event, () => homeFormEl.requestSubmit()));
 resultsTopFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
   activeExampleQuestion = null;
   renderExampleCards();
   askAi({ message: resultsQueryEl.value, resetConversation: true });
 });
+resultsQueryEl.addEventListener("input", () => resizeTextarea(resultsQueryEl, 150));
+resultsQueryEl.addEventListener("keydown", (event) => submitOnEnter(event, () => resultsTopFormEl.requestSubmit()));
 followupFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
   submitFollowup(followupInputEl);
 });
 followupInputEl.addEventListener("input", resizeFollowup);
-followupInputEl.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    submitFollowup(followupInputEl);
-  }
+followupInputEl.addEventListener("keydown", (event) => submitOnEnter(event, () => submitFollowup(followupInputEl)));
+aiHistoryEl.addEventListener("click", (event) => {
+  const refButton = event.target.closest(".answer-ref");
+  if (!refButton) return;
+  openSourceReference(Number(refButton.dataset.refIndex || 0));
+});
+aiHistoryEl.addEventListener("mouseover", (event) => {
+  const refButton = event.target.closest(".answer-ref");
+  if (!refButton) return;
+  showReferencePreview(refButton, Number(refButton.dataset.refIndex || 0));
+});
+aiHistoryEl.addEventListener("focusin", (event) => {
+  const refButton = event.target.closest(".answer-ref");
+  if (!refButton) return;
+  showReferencePreview(refButton, Number(refButton.dataset.refIndex || 0));
+});
+aiHistoryEl.addEventListener("mouseout", (event) => {
+  if (!event.target.closest(".answer-ref")) return;
+  hideReferencePreview();
+});
+aiHistoryEl.addEventListener("focusout", (event) => {
+  if (!event.target.closest(".answer-ref")) return;
+  hideReferencePreview({ delay: 0 });
 });
 productModalBackdropBtn.addEventListener("click", () => setProductModalOpen(false));
 productModalCloseBtn.addEventListener("click", () => setProductModalOpen(false));
@@ -696,5 +922,6 @@ setResultsVisible(false);
 setAiVisible(false);
 clearAiConversation();
 renderComments([]);
+resizeQueryTextareas();
 setProductModalOpen(false);
 loadExampleBank();

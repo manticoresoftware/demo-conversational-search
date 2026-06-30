@@ -51,13 +51,22 @@ def parse_chat_result(payload: dict[str, Any] | list[Any]) -> dict[str, Any]:
 
 
 def parse_sources(value: Any) -> list[Any]:
+    def stringify_reference_ids(source: Any) -> Any:
+        if not isinstance(source, dict):
+            return source
+        normalized = dict(source)
+        for key in ("id", "item_id", "document_id"):
+            if key in normalized and normalized[key] is not None:
+                normalized[key] = str(normalized[key])
+        return normalized
+
     if isinstance(value, list):
-        return value
+        return [stringify_reference_ids(source) for source in value]
     if isinstance(value, str) and value.strip():
         try:
             parsed = json.loads(value)
             if isinstance(parsed, list):
-                return parsed
+                return [stringify_reference_ids(source) for source in parsed]
         except Exception:
             return []
     return []
@@ -135,6 +144,7 @@ def create_chat_handler(
             "user_query": row.get("user_query") or message,
             "search_query": row.get("search_query") or "",
             "response": row.get("response") or "",
+            "response_with_refs": row.get("response_with_refs") or "",
             "sources": parse_sources(row.get("sources")),
             "items": [],
             "model": model,
