@@ -6,14 +6,8 @@ cd "$ROOT_DIR"
 
 TABLE_DUMP="${TABLE_DUMP:-dumps/convapparel_products_with_embeddings.sql.xz.part-*}"
 TABLE_DUMP_MEMBER="${TABLE_DUMP_MEMBER:-}"
-CHAT_MODEL_SQL="${CHAT_MODEL_SQL:-dumps/create_chat_model.sql}"
 SERVICE_NAME="${MANTICORE_SERVICE:-manticore}"
 TABLE_NAME="${TABLE_NAME:-convapparel_products}"
-
-if [[ ! -f "$CHAT_MODEL_SQL" ]]; then
-  echo "Missing chat model SQL: $CHAT_MODEL_SQL" >&2
-  exit 1
-fi
 
 shopt -s nullglob
 table_dump_parts=($TABLE_DUMP)
@@ -36,9 +30,10 @@ until docker exec "$container_id" sh -c 'exec mysql -e "SELECT 1"' >/dev/null 2>
   sleep 1
 done
 
-echo "Dropping existing $TABLE_NAME table and chat model if present..."
+echo "Dropping existing $TABLE_NAME table and default chat models if present..."
 docker exec "$container_id" sh -c "exec mysql -e \"DROP TABLE IF EXISTS $TABLE_NAME\"" >/dev/null
 docker exec "$container_id" sh -c 'exec mysql -e "DROP CHAT MODEL IF EXISTS assistant"' >/dev/null 2>&1 || true
+docker exec "$container_id" sh -c 'exec mysql -e "DROP CHAT MODEL IF EXISTS assistant_gpt41mini"' >/dev/null 2>&1 || true
 
 echo "Restoring $TABLE_DUMP..."
 case "${table_dump_parts[0]}" in
@@ -61,8 +56,5 @@ case "${table_dump_parts[0]}" in
     docker exec -i "$container_id" sh -c 'exec mysql' < "${table_dump_parts[0]}"
     ;;
 esac
-
-echo "Applying $CHAT_MODEL_SQL..."
-docker exec -i "$container_id" sh -c 'exec mysql' < "$CHAT_MODEL_SQL"
 
 echo "Manticore initialization complete."

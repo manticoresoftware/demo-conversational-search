@@ -45,7 +45,7 @@ Edit `.env`:
 OPENROUTER_API_KEY=
 ```
 
-Initialize Manticore from the checked-in precomputed dump and recreate the chat model:
+Initialize Manticore from the checked-in precomputed dump:
 
 ```bash
 ./scripts/init_manticore.sh
@@ -67,13 +67,15 @@ Set in `.env`:
 OPENROUTER_API_KEY=
 ```
 
-The key is passed into the `manticore` service and used when creating the Manticore chat model.
+The key is passed into the `manticore` service and used when the app creates Manticore chat models on demand.
 
 ## API
 
 - `POST /api/assistant/chat`
-  - Body: `message`, optional `conversation_uuid`
+  - Body: `message`, optional `conversation_uuid`, optional `custom_prompt`
   - Response includes Manticore `response_with_refs` when available, plus `sources`; the UI renders inline reference markers with hover previews and opens the matching product modal on click.
+
+When `custom_prompt` is omitted or blank, the app creates/reuses the default `assistant_gpt41mini` chat model with the built-in prompt. When `custom_prompt` is non-empty, the app calculates a SHA-256 hash prefix for that prompt, creates/reuses `assistant_gpt41mini_<hash>`, and calls that model so repeated prompt variants do not recreate duplicate chat models.
 
 Example:
 
@@ -85,9 +87,9 @@ curl -X POST "http://127.0.0.1:8000/api/assistant/chat" \
 
 ## Manticore Initialization
 
-The Quick Start runs `./scripts/init_manticore.sh` once before starting the app. That script starts the `manticore` service, removes old orphan services, waits for the MySQL protocol, drops any existing `convapparel_products` table and `assistant` chat model, restores `dumps/convapparel_products_with_embeddings.sql.xz.part-*`, and applies `dumps/create_chat_model.sql`.
+The Quick Start runs `./scripts/init_manticore.sh` once before starting the app. That script starts the `manticore` service, removes old orphan services, waits for the MySQL protocol, drops any existing `convapparel_products` table and default `assistant_gpt41mini` chat model, and restores `dumps/convapparel_products_with_embeddings.sql.xz.part-*`.
 
-Run the initialization script again when you need to reset the `convapparel_products` table or recreate the `assistant` chat model. Edit `dumps/create_chat_model.sql` if the chat model definition needs to change.
+Run the initialization script again when you need to reset the `convapparel_products` table. Chat models are created by the FastAPI app on demand before `CALL CHAT`, which also lets the UI send a custom prompt per request.
 
 ## Local Python Development
 

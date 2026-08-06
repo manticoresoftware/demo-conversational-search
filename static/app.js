@@ -2,10 +2,12 @@ const homeScreenEl = document.getElementById("home-screen");
 const resultsScreenEl = document.getElementById("results-screen");
 const homeFormEl = document.getElementById("home-form");
 const homeQueryEl = document.getElementById("home-query");
+const homeCustomPromptEl = document.getElementById("home-custom-prompt");
 const homeRandomQuestionBtn = document.getElementById("home-random-question-btn");
 const homeSearchBtn = document.getElementById("home-search-btn");
 const resultsTopFormEl = document.getElementById("results-top-form");
 const resultsQueryEl = document.getElementById("results-query");
+const resultsCustomPromptEl = document.getElementById("results-custom-prompt");
 const resultsSearchBtn = document.getElementById("results-search-btn");
 const errorBannerEl = document.getElementById("error-banner");
 const sourceResultsEl = document.getElementById("source-results");
@@ -37,6 +39,8 @@ let activeExampleQuestion = null;
 let currentVisibleSources = [];
 let referencePreviewEl = null;
 let referencePreviewHideTimer = null;
+let activeCustomPrompt = "";
+const chatModelName = "assistant_gpt41mini";
 
 function showError(message) {
   errorBannerEl.textContent = message;
@@ -134,11 +138,25 @@ function sqlQuote(value) {
   return `'${String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
 }
 
+function currentCustomPrompt() {
+  return String(activeCustomPrompt || "").trim();
+}
+
+function syncCustomPrompt(value, sourceEl = null) {
+  activeCustomPrompt = String(value || "");
+  for (const promptEl of [homeCustomPromptEl, resultsCustomPromptEl]) {
+    if (promptEl && promptEl !== sourceEl && promptEl.value !== activeCustomPrompt) {
+      promptEl.value = activeCustomPrompt;
+    }
+  }
+}
+
 function buildChatSql(message) {
+  const model = currentCustomPrompt() ? `${chatModelName}_<prompt-sha256-prefix>` : chatModelName;
   return `CALL CHAT(${[
     sqlQuote(message),
     sqlQuote("convapparel_products"),
-    sqlQuote("assistant"),
+    sqlQuote(model),
     sqlQuote(chatConversationUuid || ""),
     sqlQuote("embedding_vector"),
   ].join(", ")})`;
@@ -273,11 +291,15 @@ function setBusy(isBusy) {
   homeSearchBtn.disabled = isBusy;
   homeRandomQuestionBtn.disabled = isBusy;
   resultsQueryEl.disabled = isBusy;
+  if (homeCustomPromptEl) {
+    homeCustomPromptEl.disabled = isBusy;
+  }
+  resultsCustomPromptEl.disabled = isBusy;
   resultsSearchBtn.disabled = isBusy;
   followupInputEl.disabled = isBusy;
   followupSendBtn.disabled = isBusy;
-  homeSearchBtn.textContent = isBusy ? "Searching..." : "Ask AI";
-  resultsSearchBtn.textContent = isBusy ? "Searching..." : "Search";
+  homeSearchBtn.textContent = isBusy ? "…" : "↑";
+  resultsSearchBtn.textContent = isBusy ? "…" : "↑";
   followupSendBtn.textContent = isBusy ? "…" : "↑";
 }
 
@@ -307,9 +329,10 @@ function renderCommentModal(comment) {
 
 function renderExampleCard(targetEl, { compact = false } = {}) {
   if (!targetEl) return;
-  const generateButtonText = compact
-    ? "Step 2: Show shopping questions"
-    : "Step 2: Show shopping questions that should retrieve this product";
+  const titleText = compact ? "Can search find this product?" : "Can search find this product?";
+  const hintText = compact
+    ? "A real catalog item plus a shopper request that should retrieve it."
+    : "Here is a real catalog item and a natural shopper request that should retrieve it.";
   if (!activeExample) {
     targetEl.innerHTML = `
       <h2>Loading a random ConvApparel product…</h2>
@@ -319,37 +342,48 @@ function renderExampleCard(targetEl, { compact = false } = {}) {
 
   const doc = activeExample.document || {};
   const questions = Array.isArray(activeExample.questions) ? activeExample.questions : [];
-  const questionButtons = questions
+  const queryCards = questions
     .map((question, index) => {
       const isActive = question === activeExampleQuestion || question.text === activeExampleQuestion?.text;
-      return `<button class="example-question${isActive ? " active" : ""}" type="button" data-question-index="${index}">${escapeHtml(question.text)}</button>`;
+      return `<button class="example-query-text${isActive ? " active" : ""}" type="button" data-question-index="${index}">${escapeHtml(question.text)}</button>`;
     })
     .join("");
+  const firstQuestionIndex = questions.length ? 0 : -1;
 
   targetEl.innerHTML = `
     <div class="example-card-head">
-      <button class="example-random-btn" type="button">Step 1: Pick a random product</button>
-    </div>
-    <article class="example-document">
-      ${doc.image_url ? `<img class="example-product-image" src="${escapeHtml(doc.image_url)}" alt="${escapeHtml(doc.title || "ConvApparel product")}" />` : ""}
-      <div class="example-product-copy">
-        <p class="example-doc-meta">Product ID ${escapeHtml(doc.document_id || "N/A")}${doc.category ? ` · ${escapeHtml(doc.category)}` : ""}</p>
-        <h3>${escapeHtml(doc.title || "ConvApparel product")}</h3>
-        <p>${escapeHtml(doc.content || "")}</p>
+      <div>
+        <h2>${titleText}</h2>
+        <p class="example-hint">${hintText}</p>
       </div>
-    </article>
-    <button class="example-generate-btn" type="button">${generateButtonText}</button>
-    <div class="example-questions${activeExample.questionsVisible ? "" : " hidden"}">
-      ${questionButtons}
+    </div>
+    <div class="example-search-pair">
+      <article class="example-document">
+        ${doc.image_url ? `<img class="example-product-image" src="${escapeHtml(doc.image_url)}" alt="${escapeHtml(doc.title || "ConvApparel product")}" />` : ""}
+        <div class="example-product-copy">
+          <p class="example-doc-meta">Product ID ${escapeHtml(doc.document_id || "N/A")}${doc.category ? ` · ${escapeHtml(doc.category)}` : ""}</p>
+          <h3>${escapeHtml(doc.title || "ConvApparel product")}</h3>
+          <p>${escapeHtml(doc.content || "")}</p>
+        </div>
+      </article>
+      <section class="example-request-panel" aria-label="Shopper request for this product">
+        <div class="example-query-label">Shopper request</div>
+        <div class="example-questions">
+          ${queryCards}
+        </div>
+        <div class="example-actions">
+          <button class="example-random-btn" type="button" aria-label="Show another product" title="Show another product">🎲</button>
+          <button class="example-use-btn" type="button" data-question-index="${firstQuestionIndex}"${firstQuestionIndex < 0 ? " disabled" : ""}>Search with this request</button>
+        </div>
+      </section>
     </div>
   `;
 
   targetEl.querySelector(".example-random-btn")?.addEventListener("click", () => setRandomExample());
-  targetEl.querySelector(".example-generate-btn")?.addEventListener("click", () => {
-    activeExample.questionsVisible = true;
-    renderExampleCards();
+  targetEl.querySelector(".example-use-btn")?.addEventListener("click", (event) => {
+    selectExampleQuestion(Number(event.currentTarget.dataset.questionIndex || 0));
   });
-  targetEl.querySelectorAll(".example-question").forEach((button) => {
+  targetEl.querySelectorAll(".example-query-text").forEach((button) => {
     button.addEventListener("click", () => selectExampleQuestion(Number(button.dataset.questionIndex || 0)));
   });
 }
@@ -360,11 +394,15 @@ function renderExampleCards() {
 }
 
 function setRandomExample() {
-  activeExample = chooseRandom(exampleBank);
-  if (activeExample) {
-    activeExample.questionsVisible = false;
+  const examplesWithQuestions = exampleBank.filter((example) => Array.isArray(example.questions) && example.questions.length > 0);
+  activeExample = chooseRandom(examplesWithQuestions) || chooseRandom(exampleBank);
+  const questions = Array.isArray(activeExample?.questions) ? activeExample.questions : [];
+  activeExampleQuestion = chooseRandom(questions) || null;
+  if (activeExampleQuestion?.text) {
+    homeQueryEl.value = activeExampleQuestion.text;
+    resultsQueryEl.value = activeExampleQuestion.text;
+    resizeQueryTextareas();
   }
-  activeExampleQuestion = null;
   renderExampleCards();
   renderComments([]);
 }
@@ -380,7 +418,6 @@ function pickRandomExampleQuestion() {
   }
 
   activeExample = nextExample;
-  activeExample.questionsVisible = true;
   activeExampleQuestion = nextQuestion;
   homeQueryEl.value = nextQuestion.text;
   resultsQueryEl.value = nextQuestion.text;
@@ -416,7 +453,6 @@ async function loadExampleBank() {
 
 async function selectExampleQuestion(index) {
   if (!activeExample) return;
-  activeExample.questionsVisible = true;
   activeExampleQuestion = activeExample.questions?.[index] || null;
   renderExampleCards();
   if (!activeExampleQuestion) return;
@@ -507,13 +543,19 @@ function renderComments(items) {
 }
 
 async function callChat(message) {
+  const customPrompt = currentCustomPrompt();
+  const body = {
+    message,
+    conversation_uuid: chatConversationUuid,
+  };
+  if (customPrompt) {
+    body.custom_prompt = customPrompt;
+  }
+
   const response = await fetch("/api/assistant/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message,
-      conversation_uuid: chatConversationUuid,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -873,6 +915,12 @@ homeFormEl.addEventListener("submit", (event) => {
 homeRandomQuestionBtn.addEventListener("click", chooseRandomQuestionForHome);
 homeQueryEl.addEventListener("input", () => resizeTextarea(homeQueryEl, 180));
 homeQueryEl.addEventListener("keydown", (event) => submitOnEnter(event, () => homeFormEl.requestSubmit()));
+if (homeCustomPromptEl) {
+  homeCustomPromptEl.addEventListener("input", () => {
+    syncCustomPrompt(homeCustomPromptEl.value, homeCustomPromptEl);
+    resizeTextarea(homeCustomPromptEl, 220);
+  });
+}
 resultsTopFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
   activeExampleQuestion = null;
@@ -881,6 +929,10 @@ resultsTopFormEl.addEventListener("submit", (event) => {
 });
 resultsQueryEl.addEventListener("input", () => resizeTextarea(resultsQueryEl, 150));
 resultsQueryEl.addEventListener("keydown", (event) => submitOnEnter(event, () => resultsTopFormEl.requestSubmit()));
+resultsCustomPromptEl.addEventListener("input", () => {
+  syncCustomPrompt(resultsCustomPromptEl.value, resultsCustomPromptEl);
+  resizeTextarea(resultsCustomPromptEl, 220);
+});
 followupFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
   submitFollowup(followupInputEl);

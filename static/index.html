@@ -6,7 +6,7 @@
     <title>Manticore Shop Demo</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon.svg" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260630article1" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260717search8" />
   </head>
   <body>
     <main id="home-screen" class="home-screen">
@@ -22,8 +22,8 @@
       <form id="home-form" class="home-search" aria-label="Search Manticore Shop Demo">
         <div class="home-search-box">
           <button id="home-random-question-btn" class="home-random-question-btn" type="button" aria-label="Try another shopping request" title="Try another shopping request">↻</button>
-          <textarea id="home-query" rows="2" placeholder="Ask for waterproof running shoes, winter jackets, linen shirts..." autofocus></textarea>
-          <button id="home-search-btn" type="submit">Ask AI</button>
+          <textarea id="home-query" rows="1" placeholder="Ask AI" autofocus></textarea>
+          <button id="home-search-btn" type="submit" aria-label="Ask AI">↑</button>
         </div>
         <p class="home-guided-hint">Try a realistic shopper request from the dataset, then inspect matching product cards and sources.</p>
       </form>
@@ -39,9 +39,15 @@
             <span>Manticore Shop Demo</span>
           </a>
           <form id="results-top-form" class="standard-search results-top-search" aria-label="Search apparel products from results">
-            <textarea id="results-query" rows="2" placeholder="Ask AI for apparel products..."></textarea>
-            <button id="results-search-btn" type="submit">Search</button>
+            <textarea id="results-query" rows="1" placeholder="Ask AI"></textarea>
+            <button id="results-search-btn" type="submit" aria-label="Ask AI">↑</button>
           </form>
+          <details class="prompt-settings results-prompt-settings">
+            <summary>Customize answer prompt</summary>
+            <label class="prompt-label" for="results-custom-prompt">Custom prompt</label>
+            <textarea id="results-custom-prompt" rows="5" placeholder="Optional. Leave empty to use the default shopping assistant prompt."></textarea>
+            <p class="prompt-hint">Non-empty prompts are sent with each request and mapped to a reusable hashed chat model.</p>
+          </details>
         </div>
       </header>
 
@@ -119,6 +125,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=20260630article1"></script>
+    <script src="/static/app.js?v=20260717search7"></script>
   </body>
 </html>

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from typing import Any, Callable, Optional
@@ -16,6 +17,7 @@ class ChatRequest(BaseModel):
     table: Optional[str] = None
     model: Optional[str] = None
     fields: Optional[str] = None
+    custom_prompt: Optional[str] = None
 
 
 def parse_chat_result(payload: dict[str, Any] | list[Any]) -> dict[str, Any]:
@@ -88,6 +90,31 @@ def build_chat_sql(
     return f"CALL CHAT({', '.join(args)})"
 
 
+def prompt_hash(prompt: str) -> str:
+    return hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:12]
+
+
+def custom_prompt_model_name(base_model: str, prompt: str) -> str:
+    return f"{base_model}_{prompt_hash(prompt)}"
+
+
+def build_create_chat_model_sql(
+    *,
+    model_name: str,
+    prompt: str,
+    chat_model_options: dict[str, Any],
+    quote: Callable[[str], str],
+) -> str:
+    options = []
+    for key, value in chat_model_options.items():
+        if isinstance(value, str):
+            options.append(f"{key}={quote(value)}")
+        else:
+            options.append(f"{key}={value}")
+    options.append(f"custom_prompt={quote(prompt)}")
+    return f"CREATE CHAT MODEL {model_name} (\n    " + ",\n    ".join(options) + "\n)"
+
+
 def create_chat_handler(
     *,
     manticore_sql: Callable[[str], dict[str, Any] | list[Any]],
@@ -96,6 +123,8 @@ def create_chat_handler(
     default_model: str,
     vector_fields: str,
     init_message: str,
+    default_prompt: str,
+    chat_model_options: dict[str, Any],
 ):
     def assistant_chat(req: ChatRequest) -> dict[str, Any]:
         message = req.message.strip()
@@ -103,11 +132,33 @@ def create_chat_handler(
             raise HTTPException(status_code=400, detail="message is required")
 
         table = (req.table or default_table).strip() or default_table
-        model = (req.model or default_model).strip() or default_model
+        base_model = (req.model or default_model).strip() or default_model
+        custom_prompt = req.custom_prompt.strip() if isinstance(req.custom_prompt, str) else ""
+        prompt = custom_prompt or default_prompt
+        model = custom_prompt_model_name(base_model, custom_prompt) if custom_prompt else base_model
         fields = req.fields.strip() if isinstance(req.fields, str) else (vector_fields or None)
         if isinstance(fields, str) and not fields.strip():
             fields = None
         conversation_uuid = req.conversation_uuid.strip() if req.conversation_uuid else None
+
+        create_model_sql = build_create_chat_model_sql(
+            model_name=model,
+            prompt=prompt,
+            chat_model_options=chat_model_options,
+            quote=sql_quote,
+        )
+
+        try:
+            parse_chat_result(manticore_sql(create_model_sql))
+        except ValueError as exc:
+            error_text = str(exc)
+            if not is_chat_model_exists_error(error_text):
+                raise HTTPException(status_code=400, detail=error_text) from exc
+        except Exception as exc:
+            logger.exception("Chat model creation failed: %s", exc)
+            if init_message in str(exc):
+                raise HTTPException(status_code=503, detail=init_message) from exc
+            raise HTTPException(status_code=502, detail=f"Conversational search backend unavailable: {exc}") from exc
 
         def execute_chat(call_fields: str | None) -> dict[str, Any]:
             sql = build_chat_sql(
@@ -118,7 +169,19 @@ def create_chat_handler(
                 fields=call_fields,
                 quote=sql_quote,
             )
-            return parse_chat_result(manticore_sql(sql))
+            last_error: ValueError | None = None
+            for attempt in range(2):
+                try:
+                    return parse_chat_result(manticore_sql(sql))
+                except ValueError as exc:
+                    if attempt == 0 and is_transient_llm_error(str(exc)):
+                        logger.warning("Retrying transient CALL CHAT LLM error: %s", exc)
+                        last_error = exc
+                        continue
+                    raise
+            if last_error is not None:
+                raise last_error
+            return {}
 
         try:
             row = execute_chat(fields)
@@ -166,5 +229,34 @@ def is_uninitialized_error(error_text: str) -> bool:
             "index not found",
             "model not found",
             "unknown chat model",
+        )
+    )
+
+
+def is_chat_model_exists_error(error_text: str) -> bool:
+    text = error_text.lower()
+    return "chat model" in text and any(
+        needle in text
+        for needle in (
+            "already exists",
+            "exists already",
+            "duplicate",
+        )
+    )
+
+
+def is_transient_llm_error(error_text: str) -> bool:
+    text = error_text.lower()
+    return (
+        "llm" in text
+        and any(
+            needle in text
+            for needle in (
+                "missing field `id`",
+                "missing field 'id'",
+                "tool call failed",
+                "response generation failed",
+                "request failed",
+            )
         )
     )

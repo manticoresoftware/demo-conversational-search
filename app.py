@@ -16,8 +16,25 @@ from conversational_search import create_chat_handler
 BASE_DIR = Path(__file__).parent
 MANTICORE_HTTP = "http://manticore:9308"
 DEFAULT_TABLE = "convapparel_products"
-CHAT_DEFAULT_MODEL = "assistant"
+CHAT_DEFAULT_MODEL = "assistant_gpt41mini"
 VECTOR_FIELDS = "embedding_vector"
+CHAT_MODEL_OPTIONS = {
+    "model": "openrouter:openai/gpt-4.1-mini",
+    "timeout": 60,
+    "retrieval_limit": 5,
+    "max_document_length": 0,
+}
+DEFAULT_CUSTOM_PROMPT = """You are a context-only answer writer for a shopping product search demo.
+
+Answer using only the provided context. Do not use outside knowledge, memory, assumptions, or unsupported facts.
+
+Write concise, helpful shopping recommendations. Prefer product details that are directly supported by the retrieved context.
+
+Citation rules:
+- Every recommendation or factual item must end with a citation.
+- Never include a reference ID within the item itself.
+- At the end of the item, append the reference context ID (`context[].id`) in the format `[ref:<id>]`.
+- Do not duplicate the references at the end of the whole answer."""
 SUPPORTED_SORTS = {"relevance", "title"}
 INIT_MESSAGE = "Manticore is not initialized. Run ./scripts/init_manticore.sh, then reload the app."
 
@@ -64,5 +81,7 @@ app.post("/api/assistant/chat")(
         default_model=CHAT_DEFAULT_MODEL,
         vector_fields=VECTOR_FIELDS,
         init_message=INIT_MESSAGE,
+        default_prompt=DEFAULT_CUSTOM_PROMPT,
+        chat_model_options=CHAT_MODEL_OPTIONS,
     )
 )
