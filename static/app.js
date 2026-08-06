@@ -40,6 +40,7 @@ let currentVisibleSources = [];
 let referencePreviewEl = null;
 let referencePreviewHideTimer = null;
 let activeCustomPrompt = "";
+let isChatRequestInFlight = false;
 const chatModelName = "assistant_gpt41mini";
 
 function showError(message) {
@@ -288,6 +289,7 @@ function setSourcesVisible(isVisible) {
 }
 
 function setBusy(isBusy) {
+  isChatRequestInFlight = isBusy;
   homeSearchBtn.disabled = isBusy;
   homeRandomQuestionBtn.disabled = isBusy;
   resultsQueryEl.disabled = isBusy;
@@ -301,6 +303,9 @@ function setBusy(isBusy) {
   homeSearchBtn.textContent = isBusy ? "…" : "↑";
   resultsSearchBtn.textContent = isBusy ? "…" : "↑";
   followupSendBtn.textContent = isBusy ? "…" : "↑";
+  document.querySelectorAll(".example-random-btn, .example-use-btn, .example-query-text").forEach((button) => {
+    button.disabled = isBusy;
+  });
 }
 
 function resizeTextarea(textarea, maxHeight = 160) {
@@ -342,10 +347,11 @@ function renderExampleCard(targetEl, { compact = false } = {}) {
 
   const doc = activeExample.document || {};
   const questions = Array.isArray(activeExample.questions) ? activeExample.questions : [];
+  const disabledAttr = isChatRequestInFlight ? " disabled" : "";
   const queryCards = questions
     .map((question, index) => {
       const isActive = question === activeExampleQuestion || question.text === activeExampleQuestion?.text;
-      return `<button class="example-query-text${isActive ? " active" : ""}" type="button" data-question-index="${index}">${escapeHtml(question.text)}</button>`;
+      return `<button class="example-query-text${isActive ? " active" : ""}" type="button" data-question-index="${index}"${disabledAttr}>${escapeHtml(question.text)}</button>`;
     })
     .join("");
   const firstQuestionIndex = questions.length ? 0 : -1;
@@ -372,8 +378,8 @@ function renderExampleCard(targetEl, { compact = false } = {}) {
           ${queryCards}
         </div>
         <div class="example-actions">
-          <button class="example-random-btn" type="button" aria-label="Show another product" title="Show another product">🎲</button>
-          <button class="example-use-btn" type="button" data-question-index="${firstQuestionIndex}"${firstQuestionIndex < 0 ? " disabled" : ""}>Search with this request</button>
+          <button class="example-random-btn" type="button" aria-label="Show another product" title="Show another product"${disabledAttr}>🎲</button>
+          <button class="example-use-btn" type="button" data-question-index="${firstQuestionIndex}"${firstQuestionIndex < 0 || isChatRequestInFlight ? " disabled" : ""}>Search with this request</button>
         </div>
       </section>
     </div>
@@ -394,6 +400,8 @@ function renderExampleCards() {
 }
 
 function setRandomExample() {
+  if (isChatRequestInFlight) return;
+
   const examplesWithQuestions = exampleBank.filter((example) => Array.isArray(example.questions) && example.questions.length > 0);
   activeExample = chooseRandom(examplesWithQuestions) || chooseRandom(exampleBank);
   const questions = Array.isArray(activeExample?.questions) ? activeExample.questions : [];
@@ -427,6 +435,8 @@ function pickRandomExampleQuestion() {
 }
 
 function chooseRandomQuestionForHome() {
+  if (isChatRequestInFlight) return;
+
   const nextQuestion = pickRandomExampleQuestion();
   if (!nextQuestion) {
     setRandomExample();
@@ -452,6 +462,8 @@ async function loadExampleBank() {
 }
 
 async function selectExampleQuestion(index) {
+  if (isChatRequestInFlight) return null;
+
   if (!activeExample) return;
   activeExampleQuestion = activeExample.questions?.[index] || null;
   renderExampleCards();
@@ -566,6 +578,8 @@ async function callChat(message) {
 }
 
 async function askAi({ message = "", resetConversation = false } = {}) {
+  if (isChatRequestInFlight) return null;
+
   const text = String(message || homeQueryEl.value || followupInputEl.value || "").trim();
   if (!text) return null;
 
